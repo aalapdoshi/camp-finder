@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Details - CampFinder</title>
+    <meta name="description" content="Detailed information about this summer camp.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="campfinder_index.html" class="logo">
+                    🏕️ CampFinder
+                </a>
+                <div class="nav-links">
+                    <a href="browse.html">Browse Camps</a>
+                    <a href="about.html">About</a>
+                    <a href="#" onclick="openChat()">Ask AI ✨</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="camp-detail-page">
+        <div class="container">
+            <a href="browse.html" class="camp-detail-back">&larr; Back to Browse</a>
+
+            <div id="camp-detail-loading" class="loading">
+                Loading camp details...
+            </div>
+
+            <div id="camp-detail-error" class="camp-detail-error" style="display:none;">
+                <h1>We couldn't find that camp</h1>
+                <p>Please go back to Browse and try again.</p>
+                <a href="browse.html" class="btn-primary">Back to Browse</a>
+            </div>
+
+            <div id="camp-detail" class="camp-detail" style="display:none;">
+                <!-- Camp details will be rendered here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>CampFinder</h4>
+                    <p>Helping Ann Arbor families find the perfect summer camp since 2026.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="browse.html">Browse Camps</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="#" onclick="openChat()">Ask AI</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p>Questions? Email us at<br>hello@campfinder.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CampFinder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/airtable.js"></script>
+    <script src="js/ai-chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/camp-detail.js"></script>
+</body>
+</html>
+
