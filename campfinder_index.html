@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampFinder - Find Your Perfect Summer Camp in Ann Arbor</title>
+    <meta name="description" content="Discover the perfect summer camp for your child in Ann Arbor. Browse 80+ camps with AI-powered recommendations.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="campfinder_index.html" class="logo">
+                    🏕️ CampFinder
+                </a>
+                <div class="nav-links">
+                    <a href="browse.html">Browse Camps</a>
+                    <a href="about.html">About</a>
+                    <a href="#" id="chat-trigger">Ask AI ✨</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">Find Your Perfect Summer Camp</h1>
+            <p class="hero-subtitle">Discover amazing summer experiences for kids ages 5-12 in Ann Arbor</p>
+            
+            <!-- AI-Powered Search -->
+            <div class="hero-search">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="ai-search" 
+                        placeholder="Try: 'Find science camps for my 9-year-old under $400/week'"
+                        class="search-input"
+                    >
+                    <button class="search-btn" onclick="handleAISearch()">
+                        Ask AI ✨
+                    </button>
+                </div>
+                <div class="quick-searches">
+                    <span class="quick-label">Popular searches:</span>
+                    <button class="quick-search-btn" onclick="quickSearch('art camps')">Art Camps</button>
+                    <button class="quick-search-btn" onclick="quickSearch('after care')">With After Care</button>
+                    <button class="quick-search-btn" onclick="quickSearch('under $300')">Budget Friendly</button>
+                    <button class="quick-search-btn" onclick="quickSearch('nature camps')">Nature & Outdoor</button>
+                </div>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number" id="total-camps">82</div>
+                    <div class="stat-label">Summer Camps</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">5-15</div>
+                    <div class="stat-label">Age Range</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">$0-$600</div>
+                    <div class="stat-label">Price Range</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Camps -->
+    <section class="featured-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured Camps</h2>
+                <p>Top picks recommended by parents and our AI</p>
+            </div>
+            
+            <div id="featured-camps" class="camps-grid">
+                <!-- Featured camps will load here -->
+                <div class="loading">Loading featured camps...</div>
+            </div>
+
+            <div class="section-cta">
+                <a href="browse.html" class="btn-primary">Browse All Camps →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Browse by Category -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Browse by Interest</h2>
+                <p>Find camps that match your child's passions</p>
+            </div>
+            
+            <div class="categories-grid" id="categories-grid">
+                <!-- Categories will load here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>How CampFinder Works</h2>
+                <p>Finding the perfect camp is easy with AI assistance</p>
+            </div>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon">🤖</div>
+                    <h3>Chat with AI</h3>
+                    <p>Tell our friendly AI about your child's age, interests, and budget</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">🎯</div>
+                    <h3>Get Recommendations</h3>
+                    <p>Receive personalized camp suggestions based on what matters to you</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">📅</div>
+                    <h3>Register & Go</h3>
+                    <p>Click through to register directly with your chosen camps</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonial/Trust -->
+    <section class="trust-section">
+        <div class="container">
+            <div class="trust-content">
+                <div class="trust-text">
+                    <h2>Trusted by Ann Arbor Families</h2>
+                    <p>Created by [Partner Name], who has been helping Ann Arbor families find summer camps for over 10 years. Now powered by AI to make your search even easier.</p>
+                    <a href="about.html" class="btn-secondary">Learn Our Story →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>CampFinder</h4>
+                    <p>Helping Ann Arbor families find the perfect summer camp since 2026.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="browse.html">Browse Camps</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="#" onclick="openChat()">Ask AI</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p>Questions? Email us at<br>hello@campfinder.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CampFinder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- AI Chat Widget (will be injected) -->
+    <div id="chat-widget"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/airtable.js"></script>
+    <script src="js/ai-chat.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Load featured camps on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            debugger;
+            await loadFeaturedCamps();
+            await loadCategories();
+        });
+
+        function quickSearch(query) {
+            localStorage.setItem('searchQuery', query);
+            window.location.href = 'browse.html';
+        }
+
+        function handleAISearch() {
+            const query = document.getElementById('ai-search').value;
+            if (query) {
+                openChatWithQuery(query);
+            } else {
+                openChat();
+            }
+        }
+    </script>
+</body>
+</html>
