@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Camps - CampFinder</title>
+    <meta name="description" content="Browse and filter summer camps in Ann Arbor by age, price, location, category, and after care.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="campfinder_index.html" class="logo">
+                    🏕️ CampFinder
+                </a>
+                <div class="nav-links">
+                    <a href="browse.html">Browse Camps</a>
+                    <a href="about.html">About</a>
+                    <a href="#" onclick="openChat()">Ask AI ✨</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="browse-page">
+        <div class="container">
+            <header class="browse-header">
+                <h1>Browse Summer Camps</h1>
+                <p>Use filters to find the best match for your child.</p>
+            </header>
+
+            <section class="browse-filters" id="browse-filters">
+                <div class="browse-filters-row">
+                    <div class="browse-filter-group browse-filter-search">
+                        <label for="browse-search">Search camps</label>
+                        <input
+                            type="text"
+                            id="browse-search"
+                            class="search-input"
+                            placeholder="Search by name, interests, description..."
+                        >
+                    </div>
+                </div>
+
+                <div class="browse-filters-row">
+                    <div class="browse-filter-group">
+                        <label for="browse-age">Child's age</label>
+                        <input
+                            type="number"
+                            id="browse-age"
+                            min="3"
+                            max="18"
+                            placeholder="Any"
+                        >
+                    </div>
+
+                    <div class="browse-filter-group">
+                        <label for="browse-max-price">Max price per week ($)</label>
+                        <input
+                            type="number"
+                            id="browse-max-price"
+                            min="0"
+                            step="25"
+                            placeholder="No limit"
+                        >
+                    </div>
+
+                    <div class="browse-filter-group">
+                        <label for="browse-city">City</label>
+                        <select id="browse-city">
+                            <option value="all">All cities</option>
+                        </select>
+                    </div>
+
+                    <div class="browse-filter-group">
+                        <label for="browse-category">Category</label>
+                        <select id="browse-category">
+                            <option value="all">All categories</option>
+                        </select>
+                    </div>
+
+                    <div class="browse-filter-group browse-filter-aftercare">
+                        <label for="browse-aftercare">
+                            <input type="checkbox" id="browse-aftercare">
+                            With after care
+                        </label>
+                    </div>
+                </div>
+
+                <div class="browse-filters-row browse-filters-footer">
+                    <button type="button" id="browse-clear" class="btn-secondary">
+                        Clear filters
+                    </button>
+                    <div class="browse-results-summary">
+                        <span id="browse-results-count">Loading camps...</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="browse-results">
+                <div id="browse-results" class="camps-grid">
+                    <div class="loading">Loading camps...</div>
+                </div>
+                <div id="browse-no-results" class="browse-no-results" style="display:none;">
+                    <h2>No camps match your filters</h2>
+                    <p>Try clearing some filters or broadening your search.</p>
+                    <button type="button" id="browse-clear-2" class="btn-secondary">
+                        Clear filters
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>CampFinder</h4>
+                    <p>Helping Ann Arbor families find the perfect summer camp since 2026.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="browse.html">Browse Camps</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="#" onclick="openChat()">Ask AI</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p>Questions? Email us at<br>hello@campfinder.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CampFinder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/airtable.js"></script>
+    <script src="js/ai-chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/browse.js"></script>
+</body>
+</html>
+

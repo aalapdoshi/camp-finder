@@ -502,6 +502,108 @@ body {
     font-size: 1.125rem;
 }
 
+/* Browse Page */
+.browse-page {
+    padding: 3rem 0;
+}
+
+.browse-header {
+    margin-bottom: 2rem;
+}
+
+.browse-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.browse-header p {
+    color: var(--text-light);
+}
+
+.browse-filters {
+    background: var(--bg-light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem 1.5rem 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.browse-filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    align-items: flex-end;
+}
+
+.browse-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 150px;
+}
+
+.browse-filter-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.browse-filter-group input[type="number"],
+.browse-filter-group select {
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 0.95rem;
+}
+
+.browse-filter-search {
+    flex: 1;
+    min-width: 240px;
+}
+
+.browse-filter-aftercare {
+    min-width: 140px;
+}
+
+.browse-filter-aftercare label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+}
+
+.browse-filters-footer {
+    justify-content: space-between;
+}
+
+.browse-results-summary {
+    font-size: 0.95rem;
+    color: var(--text-light);
+}
+
+.browse-results {
+    margin-top: 1rem;
+}
+
+.browse-no-results {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-light);
+}
+
+.browse-no-results h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.browse-no-results p {
+    margin-bottom: 1rem;
+}
+
 /* Camp Detail Page */
 .camp-detail-page {
     padding: 3rem 0;
