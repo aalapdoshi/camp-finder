@@ -245,10 +245,11 @@ function transformToAirtableFields(sheetCamp, existingAirtableCamp, stats, rowNu
     }
   }
   
-  // Parse Address → City
+  // Parse Address → City and copy full Address
   const addressData = parseAddress(sheetCamp['Address']);
   if (addressData.city) fields['City'] = addressData.city;
-  // Note: Location Name field doesn't exist in Airtable, so we skip it
+  // Copy full address to Address field
+  if (addressData.fullAddress) fields['Address'] = addressData.fullAddress;
   
   // Parse Cost
   const costData = parseCost(sheetCamp['Cost']);
@@ -266,12 +267,18 @@ function transformToAirtableFields(sheetCamp, existingAirtableCamp, stats, rowNu
   // Parse After Care
   fields['Has After Care'] = parseAfterCare(sheetCamp['Before / After Care']);
   
-  // Combine Description
-  fields['Description'] = combineDescription(
-    sheetCamp['Registration Details'],
-    sheetCamp['Days/Times'],
-    sheetCamp['Before / After Care']
-  );
+  // Copy individual fields to separate Airtable fields
+  if (sheetCamp['Registration Details'] && sheetCamp['Registration Details'].toString().trim()) {
+    fields['Registration Notes'] = sheetCamp['Registration Details'].toString().trim();
+  }
+  
+  if (sheetCamp['Before / After Care'] && sheetCamp['Before / After Care'].toString().trim()) {
+    fields['Extended Care Notes'] = sheetCamp['Before / After Care'].toString().trim();
+  }
+  
+  if (sheetCamp['Days/Times'] && sheetCamp['Days/Times'].toString().trim()) {
+    fields['Schedule Notes'] = sheetCamp['Days/Times'].toString().trim();
+  }
   
   // Preserve fields not in sheet
   if (existingAirtableCamp) {

@@ -684,6 +684,30 @@ body {
     border: 1px solid var(--border-color);
 }
 
+.camp-detail-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.camp-detail-note-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.camp-detail-note-item .detail-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.camp-detail-note-item .detail-value {
+    color: var(--text-light);
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
 .camp-detail-error h1 {
     font-size: 1.75rem;
     margin-bottom: 0.5rem;

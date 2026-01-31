@@ -58,6 +58,12 @@ function renderCampDetail(camp) {
     const sessionDates = fields['Session Dates'] || fields['Dates'];
     const weeksOffered = fields['Weeks Offered'];
 
+    // Notes fields
+    const address = fields['Address'];
+    const scheduleNotes = fields['Schedule Notes'];
+    const registrationNotes = fields['Registration Notes'];
+    const extendedCareNotes = fields['Extended Care Notes'];
+
     const ageText = (ageMin != null && ageMax != null) ? `${ageMin}-${ageMax}` : null;
 
     const metaItems = [];
@@ -110,6 +116,35 @@ function renderCampDetail(camp) {
         </section>
     ` : '';
 
+    // Build Notes section
+    const notesItems = [];
+    if (address) {
+        notesItems.push({ label: 'Address', value: address });
+    }
+    if (scheduleNotes) {
+        notesItems.push({ label: 'Schedule Notes', value: scheduleNotes });
+    }
+    if (registrationNotes) {
+        notesItems.push({ label: 'Registration Notes', value: registrationNotes });
+    }
+    if (extendedCareNotes) {
+        notesItems.push({ label: 'Extended Care Notes', value: extendedCareNotes });
+    }
+
+    const notesHtml = notesItems.length > 0 ? `
+        <section class="camp-detail-section">
+            <h2>Notes</h2>
+            <div class="camp-detail-notes">
+                ${notesItems.map(item => `
+                    <div class="camp-detail-note-item">
+                        <span class="detail-label">${item.label}:</span>
+                        <span class="detail-value">${item.value}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </section>
+    ` : '';
+
     const websiteButton = website ? `
         <a href="${website}" target="_blank" rel="noopener noreferrer" class="btn-primary">
             Visit Camp Website
@@ -134,6 +169,7 @@ function renderCampDetail(camp) {
             <p class="camp-detail-description">${description}</p>
         </section>
 
+        ${notesHtml}
         ${scheduleHtml}
         ${activitiesHtml}
     `;

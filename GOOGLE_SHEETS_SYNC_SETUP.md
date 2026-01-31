@@ -49,29 +49,39 @@
 ### Age Parsing
 - `"5-13"` → Age Min: 5, Age Max: 13
 - `"8+"` → Age Min: 8, Age Max: null
-- Non-numeric formats → skipped (warning logged)
+- Date strings (e.g., "Wed Nov 17 2021...") → skipped (no warning)
+- Grade-based formats (e.g., "K-6th grade", "Y5-5th Grade") → skipped (no warning)
+- Uses `getDisplayValue()` to handle Google Sheets date/number formatting
 
 ### Cost Parsing
 - `"$600/week"` → Cost Per Week: 600, Cost Display: "$600/week"
 - `"$199"` → Cost Per Week: 199, Cost Display: "$199"
+- `"199"` (plain number) → Cost Per Week: 199, Cost Display: "$199"
 - `"Varies - see website"` → Cost Per Week: null, Cost Display: "Varies - see website"
+- Uses `getDisplayValue()` to handle Google Sheets number formatting
 
 ### City Extraction
 - Extracts city names from addresses (Ann Arbor, Saline, Ypsilanti, etc.)
 - If no city found, leaves empty
 
+### Address Mapping
+- Full address string → `Address` field (direct copy)
+- City extracted separately → `City` field
+
 ### URL Extraction
 - Extracts URLs from hyperlinked Camp Name cells
-- If URL contains "registration" → `Registration URL`
-- Otherwise → `Website`
+- All URLs stored in `Website` field (Airtable doesn't have separate `Registration URL` field)
 
 ### After Care
 - Empty, "N/A", or "No" → `Has After Care`: false
 - Any other text → `Has After Care`: true
+- Full text also copied to `Extended Care Notes` field
 
-### Description
-- Combines: Registration Details + Days/Times + Before/After Care info
-- Formatted with line breaks
+### Field Mapping (Separate Fields)
+- `Registration Details` → `Registration Notes` (direct copy)
+- `Days/Times` → `Schedule Notes` (direct copy)
+- `Before / After Care?` → `Extended Care Notes` (direct copy)
+- No longer combines into single `Description` field
 
 ## Troubleshooting
 
@@ -82,9 +92,15 @@
 ### Sync Errors
 - Check the email summary for specific errors
 - Common issues:
-  - **Invalid age format**: Check the Ages column for non-numeric values
-  - **Invalid cost format**: Check the Cost column
+  - **Invalid age format**: Check the Ages column. Dates and grade-based formats are expected and won't cause errors
+  - **Invalid cost format**: Check the Cost column. Plain numbers (e.g., "199") are automatically handled
   - **Missing Camp Name**: Ensure all rows have a camp name
+  - **Unknown field errors**: If you see "UNKNOWN_FIELD_NAME" errors, the field doesn't exist in Airtable - contact developer to update script
+
+### Warnings
+- Warnings are only shown for truly unexpected formats
+- Date strings, grade-based age formats, and expected text values (TBD, FREE, etc.) won't trigger warnings
+- If you see warnings, they indicate data that couldn't be parsed but won't stop the sync
 
 ### Trigger Not Running
 - Go to Triggers (clock icon) → check if trigger exists

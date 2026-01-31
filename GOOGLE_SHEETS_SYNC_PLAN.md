@@ -24,13 +24,15 @@ Create an automated daily sync that updates Airtable `Camps` table from a Google
 | Google Sheet Column | Airtable Field | Transformation Logic |
 |---------------------|----------------|---------------------|
 | `Camp Name` | `Camp Name` | Direct copy (used as match key) |
-| `Camp Name` | `Website` / `Registration URL` | Extract URLs from Camp Name cell (if contains hyperlink) |
-| `Ages` | `Age Min`, `Age Max` | Parse numeric ranges (e.g., "5-13" → Min: 5, Max: 13) |
+| `Camp Name` | `Website` | Extract URL from Camp Name cell hyperlink (if present) |
+| `Ages` | `Age Min`, `Age Max` | Parse numeric ranges (e.g., "5-13" → Min: 5, Max: 13). Uses `getDisplayValue()` to handle dates/numbers. Skips date strings and grade-based formats. |
 | `Address` | `City` | Extract city name from address string |
-| `Address` | `Location Name` | Use full address string |
-| `Cost` | `Cost Per Week` | Extract numeric value (e.g., "$600/week" → 600) |
+| `Address` | `Address` | Copy full address string as-is |
+| `Cost` | `Cost Per Week` | Extract numeric value (e.g., "$600/week" → 600, or "199" → 199). Uses `getDisplayValue()` to handle formatted numbers. |
 | `Cost` | `Cost Display` | Use full cost string as-is |
-| `Registration Details (2026)` + `Days/Times` + `Before / After Care?` | `Description` | Combine with line breaks |
+| `Registration Details (2026)` | `Registration Notes` | Direct copy (if not empty) |
+| `Days/Times` | `Schedule Notes` | Direct copy (if not empty) |
+| `Before / After Care?` | `Extended Care Notes` | Direct copy (if not empty) |
 | `Before / After Care?` | `Has After Care` | Parse to boolean (non-empty, not "N/A", not "No" → true) |
 | N/A | `Primary Category` | Leave empty for new camps, preserve for existing |
 | N/A | `Activities` | Preserve existing values, leave empty for new |
@@ -95,14 +97,13 @@ Create an automated daily sync that updates Airtable `Camps` table from a Google
 4. Store full string in `Cost Display`
 5. Store numeric value in `Cost Per Week` (or null if not parseable)
 
-### URL Extraction (`Camp Name` → `Website` / `Registration URL`)
+### URL Extraction (`Camp Name` → `Website`)
 
 **Algorithm:**
 1. Check if Camp Name cell contains hyperlink (Google Sheets API provides this)
 2. Extract URL from hyperlink
-3. If URL contains "registration" or "register" → `Registration URL`
-4. Otherwise → `Website`
-5. If no hyperlink found, preserve existing Airtable value (if updating) or leave empty (if new)
+3. Store in `Website` field (Airtable only has `Website`, not `Registration URL`)
+4. If no hyperlink found, preserve existing Airtable `Website` value (if updating) or leave empty (if new)
 
 ### After Care Boolean (`Before / After Care?` → `Has After Care`)
 
@@ -119,21 +120,17 @@ Create an automated daily sync that updates Airtable `Camps` table from a Google
 2. If empty, "n/a", or "no" → false
 3. Otherwise → true
 
-### Description Combination
+### Field Mapping (Separate Fields)
 
-**Format:**
-```
-[Registration Details]
-
-Schedule: [Days/Times]
-
-After Care: [Before / After Care?]
-```
+**Mapping:**
+- `Registration Details` → `Registration Notes` (direct copy)
+- `Days/Times` → `Schedule Notes` (direct copy)
+- `Before / After Care?` → `Extended Care Notes` (direct copy)
 
 **Algorithm:**
-1. Combine `Registration Details` + `Days/Times` + `Before / After Care?` with line breaks
-2. Remove empty sections
-3. Add section headers if content exists
+1. Each field is copied independently to its corresponding Airtable field
+2. Only set field if source has content (non-empty after trimming)
+3. No combination or formatting - direct 1:1 mapping
 
 ---
 
