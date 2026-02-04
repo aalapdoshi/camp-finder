@@ -1,0 +1,27 @@
+# API Keys and Secrets
+js/config.js
+google-apps-script-sync.gs
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS Files
+.DS_Store
+*.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp

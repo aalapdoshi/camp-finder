@@ -13,21 +13,47 @@ async function fetchCamps(forceRefresh = false) {
     }
 
     try {
-        const response = await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Camps`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                }
-            }
-        );
+        let url, headers;
+        
+        // Use Netlify proxy if available, otherwise direct API
+        if (typeof AIRTABLE_API_ENDPOINT !== 'undefined' && AIRTABLE_API_ENDPOINT) {
+            url = `${AIRTABLE_API_ENDPOINT}?table=Camps`;
+            headers = {}; // No auth header needed, handled by proxy
+        } else {
+            url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Camps`;
+            headers = {
+                'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+            };
+        }
+        
+        const response = await fetch(url, { headers });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        campsCache = data.records;
+        
+        // Netlify proxy returns all records in one response (handles pagination server-side)
+        // Direct API may need pagination handling
+        let allRecords = data.records || [];
+        let offset = data.offset;
+        
+        // Fetch remaining pages if using direct API (Netlify proxy handles pagination server-side)
+        if (!AIRTABLE_API_ENDPOINT && offset) {
+            while (offset) {
+                const nextResponse = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Camps?offset=${offset}`,
+                    { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                );
+                if (!nextResponse.ok) break;
+                const nextData = await nextResponse.json();
+                allRecords = allRecords.concat(nextData.records);
+                offset = nextData.offset;
+            }
+        }
+        
+        campsCache = allRecords;
         return campsCache;
     } catch (error) {
         console.error('Error fetching camps:', error);
@@ -44,21 +70,47 @@ async function fetchCategories() {
     }
 
     try {
-        const response = await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Categories`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                }
-            }
-        );
+        let url, headers;
+        
+        // Use Netlify proxy if available, otherwise direct API
+        if (typeof AIRTABLE_API_ENDPOINT !== 'undefined' && AIRTABLE_API_ENDPOINT) {
+            url = `${AIRTABLE_API_ENDPOINT}?table=Categories`;
+            headers = {}; // No auth header needed, handled by proxy
+        } else {
+            url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Categories`;
+            headers = {
+                'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+            };
+        }
+        
+        const response = await fetch(url, { headers });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        categoriesCache = data.records;
+        
+        // Netlify proxy returns all records in one response (handles pagination server-side)
+        // Direct API may need pagination handling
+        let allRecords = data.records || [];
+        let offset = data.offset;
+        
+        // Fetch remaining pages if using direct API (Netlify proxy handles pagination server-side)
+        if (!AIRTABLE_API_ENDPOINT && offset) {
+            while (offset) {
+                const nextResponse = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Categories?offset=${offset}`,
+                    { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+                );
+                if (!nextResponse.ok) break;
+                const nextData = await nextResponse.json();
+                allRecords = allRecords.concat(nextData.records);
+                offset = nextData.offset;
+            }
+        }
+        
+        categoriesCache = allRecords;
         return categoriesCache;
     } catch (error) {
         console.error('Error fetching categories:', error);

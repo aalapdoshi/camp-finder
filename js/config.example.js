@@ -1,6 +1,6 @@
 // config.js - API configuration
-// For local development: Use direct API keys
-// For Netlify: Uses proxy functions (no keys needed here)
+// Copy this file to config.js and add your actual API keys for LOCAL DEVELOPMENT
+// For Netlify deployment, use environment variables (see NETLIFY_SETUP.md)
 
 // Check if we're running on Netlify (using proxy) or locally (direct API)
 const IS_NETLIFY = window.location.hostname.includes('netlify.app') || 

@@ -1,0 +1,11 @@
+[build]
+  # No build command needed for static site
+  publish = "."
+
+[build.environment]
+  # These will be set in Netlify dashboard under Site Settings > Environment Variables
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
