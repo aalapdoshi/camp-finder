@@ -21,8 +21,16 @@ const AIRTABLE_API_KEY = 'YOUR_AIRTABLE_API_KEY_HERE';
 const AIRTABLE_BASE_ID = 'YOUR_AIRTABLE_BASE_ID_HERE';
 const AIRTABLE_TABLE_NAME = 'Camps';
 const AIRTABLE_API_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`;
+const AIRTABLE_CATEGORIES_TABLE = 'Categories';
+const AIRTABLE_CATEGORIES_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_CATEGORIES_TABLE}`;
 
 const SUMMARY_EMAIL = 'aalap1.doshi@gmail.com';
+
+// OpenAI Configuration
+const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // TODO: Add your OpenAI API key
+const OPENAI_MODEL = 'gpt-3.5-turbo';
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_DELAY_SECONDS = 20; // Delay between requests (for rate limiting)
 
 // Google Sheet column indices (0-based, row 3 is header)
 const COL_REGISTRATION_STATUS = 0;  // Column A
@@ -126,6 +134,23 @@ function syncCampsToAirtable() {
     
     if (campsToCreate.length > 0) {
       batchCreateAirtableCamps(campsToCreate, stats);
+      
+      // Step 4.5: Enrich newly created camps with AI
+      const newCampsForEnrichment = campsToCreate
+        .filter(camp => {
+          const website = camp.fields['Website'];
+          const description = camp.fields['Description'];
+          const category = camp.fields['Primary Category'];
+          return website && (!description || !category);
+        })
+        .map(camp => ({
+          name: camp.fields['Camp Name'],
+          website: camp.fields['Website']
+        }));
+      
+      if (newCampsForEnrichment.length > 0) {
+        enrichNewCampsFromSync(newCampsForEnrichment, stats);
+      }
     }
     
     // Step 5: Delete camps that exist in Airtable but not in sheet
@@ -649,6 +674,43 @@ function sendEmailSummary(stats, durationSeconds) {
   body += `<li><strong>Skipped:</strong> ${stats.skipped.length}</li>`;
   body += `</ul>`;
   
+  // Add AI enrichment summary if present
+  if (stats.aiEnrichment) {
+    const ai = stats.aiEnrichment;
+    body += `<h3>AI Enrichment (New Camps)</h3>`;
+    body += `<ul>`;
+    body += `<li><strong>Camps Processed:</strong> ${ai.processed}</li>`;
+    body += `<li><strong>Camps Enriched:</strong> ${ai.enriched}</li>`;
+    body += `<li><strong>Descriptions Added:</strong> ${ai.descriptionsAdded}</li>`;
+    body += `<li><strong>Categories Added:</strong> ${ai.categoriesAdded}</li>`;
+    body += `<li><strong>Skipped:</strong> ${ai.skipped.length}</li>`;
+    body += `<li><strong>Errors:</strong> ${ai.errors.length}</li>`;
+    if (ai.unmatchedCategories.length > 0) {
+      body += `<li><strong>Unmatched Categories:</strong> ${ai.unmatchedCategories.length} (see details below)</li>`;
+    }
+    body += `</ul>`;
+    
+    if (ai.unmatchedCategories.length > 0) {
+      body += `<h4>Unmatched Categories (for improving Categories table)</h4>`;
+      body += `<ul>`;
+      ai.unmatchedCategories.forEach(item => {
+        body += `<li><strong>${item.camp}</strong><br>`;
+        body += `AI Suggested: "${item.aiSuggested}"<br>`;
+        body += `Available: ${item.availableCategories}</li>`;
+      });
+      body += `</ul>`;
+    }
+    
+    if (ai.errors.length > 0) {
+      body += `<h4>AI Enrichment Errors</h4>`;
+      body += `<ul>`;
+      ai.errors.forEach(err => {
+        body += `<li><strong>${err.camp || 'Unknown'}</strong>: ${err.error}</li>`;
+      });
+      body += `</ul>`;
+    }
+  }
+  
   if (stats.errors.length > 0) {
     body += `<h3>Errors</h3>`;
     body += `<ul>`;
@@ -683,6 +745,14 @@ function sendEmailSummary(stats, durationSeconds) {
   });
 }
 
+/**
+ * Test function: Enrich only 2 camps (for testing)
+ * Call this instead of enrichCampsWithAI() when testing
+ */
+function testEnrichCampsWithAI() {
+  enrichCampsWithAI(2);
+}
+
 // ============================================================================
 // TRIGGER SETUP
 // ============================================================================
@@ -708,4 +778,586 @@ function setupDailyTrigger() {
     .create();
   
   Logger.log('Daily trigger set up for 2:30 AM');
+}
+
+// ============================================================================
+// AI ENRICHMENT FUNCTIONS
+// ============================================================================
+
+/**
+ * Main function to enrich all eligible camps with AI (manual trigger)
+ * Processes camps that have Website but empty Description OR Primary Category
+ * 
+ * @param {number} limit - Optional: Maximum number of camps to process (for testing). Omit to process all.
+ */
+function enrichCampsWithAI(limit) {
+  const startTime = new Date();
+  const stats = {
+    processed: 0,
+    enriched: 0,
+    descriptionsAdded: 0,
+    categoriesAdded: 0,
+    skipped: [],
+    errors: [],
+    unmatchedCategories: [] // AI suggested categories that don't match
+  };
+
+  try {
+    // Fetch all camps from Airtable
+    const camps = fetchAllAirtableCamps();
+    
+    // Fetch categories for matching
+    const categories = fetchAllAirtableCategories();
+    const categoryNames = categories.map(cat => cat.fields['Category Name'] || '').filter(Boolean);
+    
+    // Filter camps that need enrichment
+    let campsToEnrich = camps.filter(camp => {
+      const website = camp.fields['Website'];
+      const description = camp.fields['Description'];
+      const category = camp.fields['Primary Category'];
+      
+      return website && (!description || !category);
+    });
+    
+    // Apply limit if provided (for testing)
+    if (limit && limit > 0) {
+      campsToEnrich = campsToEnrich.slice(0, limit);
+      Logger.log(`Processing first ${limit} camps (limit applied for testing)`);
+    }
+    
+    Logger.log(`Found ${campsToEnrich.length} camps to enrich`);
+    
+    // Process each camp
+    for (let i = 0; i < campsToEnrich.length; i++) {
+      const camp = campsToEnrich[i];
+      const campName = camp.fields['Camp Name'];
+      const website = camp.fields['Website'];
+      
+      stats.processed++;
+      
+      // Check execution time (30 min limit)
+      const elapsed = (new Date() - startTime) / 1000;
+      if (elapsed > 1700) { // Stop at ~28 minutes to be safe
+        Logger.log(`Stopping due to time limit. Processed ${i} of ${campsToEnrich.length} camps.`);
+        stats.skipped.push({
+          camp: campName,
+          reason: 'Time limit reached - remaining camps will be processed on next run'
+        });
+        break;
+      }
+      
+      try {
+        // Fetch website content
+        const websiteContent = fetchWebsiteContent(website);
+        if (!websiteContent) {
+          stats.skipped.push({
+            camp: campName,
+            reason: 'Could not fetch website content'
+          });
+          continue;
+        }
+        
+        // Call OpenAI for enrichment
+        const aiResult = callOpenAIForEnrichment(campName, websiteContent, categoryNames);
+        if (!aiResult || !aiResult.description) {
+          stats.skipped.push({
+            camp: campName,
+            reason: 'AI did not return valid description'
+          });
+          continue;
+        }
+        
+        // Match category
+        const matchedCategory = matchCategoryToAirtable(aiResult.category, categoryNames);
+        
+        // Prepare update fields
+        const updateFields = {};
+        if (!camp.fields['Description'] && aiResult.description) {
+          updateFields['Description'] = aiResult.description;
+          stats.descriptionsAdded++;
+        }
+        
+        if (!camp.fields['Primary Category'] && matchedCategory) {
+          updateFields['Primary Category'] = matchedCategory;
+          stats.categoriesAdded++;
+        } else if (!camp.fields['Primary Category'] && aiResult.category && !matchedCategory) {
+          // Log unmatched category for future improvement
+          stats.unmatchedCategories.push({
+            camp: campName,
+            aiSuggested: aiResult.category,
+            availableCategories: categoryNames.join(', ')
+          });
+        }
+        
+        // Update Airtable if we have fields to update
+        if (Object.keys(updateFields).length > 0) {
+          updateAirtableCamp(camp.id, updateFields);
+          stats.enriched++;
+        }
+        
+        // Rate limiting delay
+        Utilities.sleep(OPENAI_DELAY_SECONDS * 1000);
+        
+      } catch (error) {
+        Logger.log(`Error enriching camp ${campName}: ${error.toString()}`);
+        stats.errors.push({
+          camp: campName,
+          error: error.toString()
+        });
+      }
+    }
+    
+    // Send email summary
+    const endTime = new Date();
+    const duration = Math.round((endTime - startTime) / 1000);
+    sendAIEnrichmentSummary(stats, duration);
+    
+    Logger.log(`AI enrichment completed: ${stats.processed} processed, ${stats.enriched} enriched, ${stats.descriptionsAdded} descriptions added, ${stats.categoriesAdded} categories added`);
+    
+  } catch (error) {
+    Logger.log(`Fatal error in AI enrichment: ${error.toString()}`);
+    stats.errors.push({ fatal: true, error: error.toString() });
+    sendAIEnrichmentSummary(stats, 0);
+    throw error;
+  }
+}
+
+/**
+ * Enrich newly created camps from sync (called automatically)
+ */
+function enrichNewCampsFromSync(newCamps, syncStats) {
+  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+    Logger.log('OpenAI API key not configured, skipping AI enrichment');
+    return;
+  }
+  
+  const aiStats = {
+    processed: 0,
+    enriched: 0,
+    descriptionsAdded: 0,
+    categoriesAdded: 0,
+    skipped: [],
+    errors: [],
+    unmatchedCategories: []
+  };
+  
+  try {
+    // Fetch categories for matching
+    const categories = fetchAllAirtableCategories();
+    const categoryNames = categories.map(cat => cat.fields['Category Name'] || '').filter(Boolean);
+    
+    // Fetch existing camps to get record IDs
+    const allCamps = fetchAllAirtableCamps();
+    const campMap = new Map();
+    allCamps.forEach(camp => {
+      campMap.set(camp.fields['Camp Name'], camp);
+    });
+    
+    // Process each new camp
+    for (let i = 0; i < newCamps.length; i++) {
+      const newCamp = newCamps[i];
+      const campRecord = campMap.get(newCamp.name);
+      
+      if (!campRecord) {
+        aiStats.skipped.push({
+          camp: newCamp.name,
+          reason: 'Camp record not found in Airtable'
+        });
+        continue;
+      }
+      
+      const website = newCamp.website || campRecord.fields['Website'];
+      const description = campRecord.fields['Description'];
+      const category = campRecord.fields['Primary Category'];
+      
+      // Skip if already has both description and category
+      if (description && category) {
+        continue;
+      }
+      
+      if (!website) {
+        aiStats.skipped.push({
+          camp: newCamp.name,
+          reason: 'No website URL'
+        });
+        continue;
+      }
+      
+      aiStats.processed++;
+      
+      try {
+        // Fetch website content
+        const websiteContent = fetchWebsiteContent(website);
+        if (!websiteContent) {
+          aiStats.skipped.push({
+            camp: newCamp.name,
+            reason: 'Could not fetch website content'
+          });
+          continue;
+        }
+        
+        // Call OpenAI for enrichment
+        const aiResult = callOpenAIForEnrichment(newCamp.name, websiteContent, categoryNames);
+        if (!aiResult || !aiResult.description) {
+          aiStats.skipped.push({
+            camp: newCamp.name,
+            reason: 'AI did not return valid description'
+          });
+          continue;
+        }
+        
+        // Match category
+        const matchedCategory = matchCategoryToAirtable(aiResult.category, categoryNames);
+        
+        // Prepare update fields
+        const updateFields = {};
+        if (!description && aiResult.description) {
+          updateFields['Description'] = aiResult.description;
+          aiStats.descriptionsAdded++;
+        }
+        
+        if (!category && matchedCategory) {
+          updateFields['Primary Category'] = matchedCategory;
+          aiStats.categoriesAdded++;
+        } else if (!category && aiResult.category && !matchedCategory) {
+          // Log unmatched category
+          aiStats.unmatchedCategories.push({
+            camp: newCamp.name,
+            aiSuggested: aiResult.category,
+            availableCategories: categoryNames.join(', ')
+          });
+        }
+        
+        // Update Airtable if we have fields to update
+        if (Object.keys(updateFields).length > 0) {
+          updateAirtableCamp(campRecord.id, updateFields);
+          aiStats.enriched++;
+        }
+        
+        // Rate limiting delay
+        Utilities.sleep(OPENAI_DELAY_SECONDS * 1000);
+        
+      } catch (error) {
+        Logger.log(`Error enriching camp ${newCamp.name}: ${error.toString()}`);
+        aiStats.errors.push({
+          camp: newCamp.name,
+          error: error.toString()
+        });
+      }
+    }
+    
+    // Merge AI stats into sync stats for email summary
+    syncStats.aiEnrichment = aiStats;
+    
+  } catch (error) {
+    Logger.log(`Error in enrichNewCampsFromSync: ${error.toString()}`);
+    aiStats.errors.push({ fatal: true, error: error.toString() });
+    syncStats.aiEnrichment = aiStats;
+  }
+}
+
+/**
+ * Fetch website content and extract text
+ */
+function fetchWebsiteContent(url) {
+  if (!url || url.trim() === '') {
+    return null;
+  }
+  
+  try {
+    const response = UrlFetchApp.fetch(url, {
+      muteHttpExceptions: true,
+      followRedirects: true,
+      validateHttpsCertificates: false
+    });
+    
+    const statusCode = response.getResponseCode();
+    if (statusCode !== 200) {
+      Logger.log(`Website fetch failed for ${url}: HTTP ${statusCode}`);
+      return null;
+    }
+    
+    const html = response.getContentText();
+    
+    // Remove script and style tags
+    let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+    text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    text = text.replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '');
+    text = text.replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '');
+    
+    // Extract text from body
+    const bodyMatch = text.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    if (bodyMatch) {
+      text = bodyMatch[1];
+    }
+    
+    // Remove HTML tags
+    text = text.replace(/<[^>]+>/g, ' ');
+    
+    // Clean up whitespace
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    // Limit to 5000 characters to save tokens
+    if (text.length > 5000) {
+      text = text.substring(0, 5000) + '...';
+    }
+    
+    return text;
+    
+  } catch (error) {
+    Logger.log(`Error fetching website ${url}: ${error.toString()}`);
+    return null;
+  }
+}
+
+/**
+ * Call OpenAI API to get description and category
+ */
+function callOpenAIForEnrichment(campName, websiteContent, availableCategories) {
+  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+    throw new Error('OpenAI API key not configured');
+  }
+  
+  const categoriesList = availableCategories.join(', ');
+  
+  const prompt = `You are helping categorize summer camps for children.
+
+Camp Name: ${campName}
+Website Content: ${websiteContent}
+
+Tasks:
+1. Write a 2-3 sentence description of this camp based on the website content. Focus on what makes this camp unique, what activities it offers, and who it's for.
+
+2. Categorize this camp into ONE of these categories:
+${categoriesList}
+
+Choose the best matching category. If none match well, respond with "NO_MATCH".
+
+Respond in JSON format:
+{
+  "description": "...",
+  "category": "..."
+}`;
+
+  try {
+    const response = UrlFetchApp.fetch(OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that analyzes summer camp websites and categorizes them. Always respond with valid JSON.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 500
+      })
+    });
+    
+    if (response.getResponseCode() !== 200) {
+      const errorText = response.getContentText();
+      Logger.log(`OpenAI API error: ${errorText}`);
+      throw new Error(`OpenAI API error: ${response.getResponseCode()}`);
+    }
+    
+    const data = JSON.parse(response.getContentText());
+    const content = data.choices[0].message.content.trim();
+    
+    // Try to extract JSON from response (might have markdown code blocks)
+    let jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in OpenAI response');
+    }
+    
+    const result = JSON.parse(jsonMatch[0]);
+    
+    return {
+      description: result.description || null,
+      category: result.category || null
+    };
+    
+  } catch (error) {
+    Logger.log(`Error calling OpenAI API: ${error.toString()}`);
+    throw error;
+  }
+}
+
+/**
+ * Match AI-suggested category to Airtable categories using fuzzy matching
+ */
+function matchCategoryToAirtable(aiCategory, availableCategories) {
+  if (!aiCategory || aiCategory === 'NO_MATCH') {
+    return null;
+  }
+  
+  const aiLower = aiCategory.toLowerCase().trim();
+  
+  // Exact match (case-insensitive)
+  for (const cat of availableCategories) {
+    if (cat.toLowerCase() === aiLower) {
+      return cat;
+    }
+  }
+  
+  // Partial match (AI category contains category name or vice versa)
+  for (const cat of availableCategories) {
+    const catLower = cat.toLowerCase();
+    if (aiLower.includes(catLower) || catLower.includes(aiLower)) {
+      return cat;
+    }
+  }
+  
+  // Fuzzy matching with common synonyms/patterns
+  const synonymMap = {
+    'science': 'STEM',
+    'technology': 'STEM',
+    'engineering': 'STEM',
+    'math': 'STEM',
+    'art': 'Arts & Crafts',
+    'crafts': 'Arts & Crafts',
+    'creative': 'Arts & Crafts',
+    'sports': 'Sports',
+    'athletic': 'Sports',
+    'nature': 'Nature & Outdoor',
+    'outdoor': 'Nature & Outdoor',
+    'environmental': 'Nature & Outdoor',
+    'farm': 'Farm & Animals',
+    'animals': 'Farm & Animals',
+    'music': 'Music',
+    'academic': 'Academic',
+    'education': 'Academic',
+    'general': 'General/Mixed',
+    'mixed': 'General/Mixed'
+  };
+  
+  for (const [key, value] of Object.entries(synonymMap)) {
+    if (aiLower.includes(key) && availableCategories.includes(value)) {
+      return value;
+    }
+  }
+  
+  // No match found
+  return null;
+}
+
+/**
+ * Fetch all categories from Airtable
+ */
+function fetchAllAirtableCategories() {
+  const categories = [];
+  let offset = null;
+  
+  do {
+    const url = offset 
+      ? `${AIRTABLE_CATEGORIES_URL}?offset=${offset}`
+      : AIRTABLE_CATEGORIES_URL;
+    
+    const response = UrlFetchApp.fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.getResponseCode() !== 200) {
+      throw new Error(`Airtable API error: ${response.getResponseCode()} - ${response.getContentText()}`);
+    }
+    
+    const data = JSON.parse(response.getContentText());
+    categories.push(...data.records);
+    offset = data.offset;
+    
+    Utilities.sleep(200);
+    
+  } while (offset);
+  
+  return categories;
+}
+
+/**
+ * Update a single camp record in Airtable
+ */
+function updateAirtableCamp(recordId, fields) {
+  const url = `${AIRTABLE_API_URL}/${recordId}`;
+  
+  const response = UrlFetchApp.fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify({ fields: fields })
+  });
+  
+  if (response.getResponseCode() !== 200) {
+    throw new Error(`Airtable update failed: ${response.getResponseCode()} - ${response.getContentText()}`);
+  }
+  
+  return JSON.parse(response.getContentText());
+}
+
+/**
+ * Send email summary for AI enrichment
+ */
+function sendAIEnrichmentSummary(stats, durationSeconds) {
+  const subject = `CampFinder AI Enrichment Summary - ${new Date().toLocaleDateString()}`;
+  
+  let body = `<h2>CampFinder AI Enrichment Summary</h2>`;
+  body += `<p><strong>Enrichment Date:</strong> ${new Date().toLocaleString()}</p>`;
+  body += `<p><strong>Duration:</strong> ${durationSeconds} seconds</p>`;
+  
+  body += `<h3>Summary</h3>`;
+  body += `<ul>`;
+  body += `<li><strong>Camps Processed:</strong> ${stats.processed}</li>`;
+  body += `<li><strong>Camps Enriched:</strong> ${stats.enriched}</li>`;
+  body += `<li><strong>Descriptions Added:</strong> ${stats.descriptionsAdded}</li>`;
+  body += `<li><strong>Categories Added:</strong> ${stats.categoriesAdded}</li>`;
+  body += `<li><strong>Skipped:</strong> ${stats.skipped.length}</li>`;
+  body += `<li><strong>Errors:</strong> ${stats.errors.length}</li>`;
+  body += `<li><strong>Unmatched Categories:</strong> ${stats.unmatchedCategories.length}</li>`;
+  body += `</ul>`;
+  
+  if (stats.unmatchedCategories.length > 0) {
+    body += `<h3>Unmatched Categories (for improving Categories table)</h3>`;
+    body += `<ul>`;
+    stats.unmatchedCategories.forEach(item => {
+      body += `<li><strong>${item.camp}</strong><br>`;
+      body += `AI Suggested: "${item.aiSuggested}"<br>`;
+      body += `Available Categories: ${item.availableCategories}</li>`;
+    });
+    body += `</ul>`;
+  }
+  
+  if (stats.errors.length > 0) {
+    body += `<h3>Errors</h3>`;
+    body += `<ul>`;
+    stats.errors.forEach(err => {
+      body += `<li><strong>${err.camp || 'Unknown'}</strong>: ${err.error}</li>`;
+    });
+    body += `</ul>`;
+  }
+  
+  if (stats.skipped.length > 0) {
+    body += `<h3>Skipped Camps</h3>`;
+    body += `<ul>`;
+    stats.skipped.forEach(skip => {
+      body += `<li><strong>${skip.camp}</strong>: ${skip.reason}</li>`;
+    });
+    body += `</ul>`;
+  }
+  
+  MailApp.sendEmail({
+    to: SUMMARY_EMAIL,
+    subject: subject,
+    htmlBody: body
+  });
 }

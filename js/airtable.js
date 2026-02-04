@@ -212,24 +212,39 @@ function createCampCard(camp) {
     const card = document.createElement('div');
     card.className = 'camp-card';
 
+    // Get description text safely
+    let descriptionText = '';
+    if (fields['Short Description'] && fields['Short Description'].toString().trim()) {
+      descriptionText = fields['Short Description'].toString().trim();
+    } else if (fields['Description'] && fields['Description'].toString().trim()) {
+      const desc = fields['Description'].toString().trim();
+      descriptionText = desc.length > 120 ? desc.substring(0, 120) + '...' : desc;
+    }
+    
     card.innerHTML = `
         <div class="camp-category">${fields['Primary Category'] || 'General'}</div>
         <h3 class="camp-name">${fields['Camp Name']}</h3>
-        <p class="camp-short-desc">${fields['Short Description'] || fields['Description']?.substring(0, 120) + '...' || ''}</p>
+        ${descriptionText ? `<p class="camp-short-desc">${descriptionText}</p>` : ''}
         
         <div class="camp-details">
+            ${(fields['Age Min'] != null && fields['Age Max'] != null) ? `
             <div class="camp-detail-item">
                 <span class="detail-label">Ages:</span>
                 <span class="detail-value">${fields['Age Min']}-${fields['Age Max']}</span>
             </div>
+            ` : ''}
+            ${((fields['Cost Display'] && fields['Cost Display'].toString().trim()) || fields['Cost Per Week'] != null) ? `
             <div class="camp-detail-item">
                 <span class="detail-label">Cost:</span>
-                <span class="detail-value">${fields['Cost Display'] || '$' + fields['Cost Per Week']}</span>
+                <span class="detail-value">${(fields['Cost Display'] && fields['Cost Display'].toString().trim()) || (fields['Cost Per Week'] != null ? '$' + fields['Cost Per Week'] : '')}</span>
             </div>
+            ` : ''}
+            ${fields['City'] ? `
             <div class="camp-detail-item">
                 <span class="detail-label">Location:</span>
                 <span class="detail-value">${fields['City']}</span>
             </div>
+            ` : ''}
         </div>
         
         ${fields['Has After Care'] ? '<div class="badge">✓ After Care Available</div>' : ''}

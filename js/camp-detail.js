@@ -46,11 +46,14 @@ function renderCampDetail(camp) {
     const category = fields['Primary Category'] || 'General';
     const ageMin = fields['Age Min'];
     const ageMax = fields['Age Max'];
-    const costDisplay = fields['Cost Display'] || (fields['Cost Per Week'] ? `$${fields['Cost Per Week']}` : null);
+    const costDisplay = fields['Cost Display'] || (fields['Cost Per Week'] != null ? `$${fields['Cost Per Week']}` : null);
     const city = fields['City'];
     const locationName = fields['Location Name'];
     const hasAfterCare = fields['Has After Care'];
-    const description = fields['Description'] || fields['Short Description'] || '';
+    // Get description safely, avoiding null/undefined
+    const description = (fields['Description'] && fields['Description'].toString().trim()) || 
+                        (fields['Short Description'] && fields['Short Description'].toString().trim()) || 
+                        '';
     const activities = Array.isArray(fields['Activities']) ? fields['Activities'] : [];
     const website = fields['Website'] || fields['Registration URL'] || null;
 
@@ -164,10 +167,12 @@ function renderCampDetail(camp) {
             ${websiteButton}
         </header>
 
+        ${description ? `
         <section class="camp-detail-section">
             <h2>About this camp</h2>
             <p class="camp-detail-description">${description}</p>
         </section>
+        ` : ''}
 
         ${notesHtml}
         ${scheduleHtml}
