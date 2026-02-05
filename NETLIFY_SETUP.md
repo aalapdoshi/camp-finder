@@ -38,7 +38,7 @@ OPENAI_API_KEY=sk-your-openai-key-here
 
 Netlify will automatically:
 - Deploy your static files
-- Set up the Netlify Function (`netlify/functions/airtable-proxy.js`)
+- Set up the Netlify Function (`netlify/functions/airtable.js`)
 - Use environment variables in the function
 
 ---
@@ -125,7 +125,7 @@ OPENAI_API_KEY=your-openai-key-here
 ### "Failed to fetch" error
 - Check Netlify Function logs (Site → Functions → View logs)
 - Verify environment variables are set correctly
-- Check function name matches route (`airtable-proxy.js` → `/api/airtable`)
+- Check function name matches route (`airtable.js` → `/api/airtable`)
 
 ### API calls work locally but not on Netlify
 - Verify environment variables are set in Netlify dashboard
@@ -144,7 +144,7 @@ OPENAI_API_KEY=your-openai-key-here
 CampFinder_v1/
 ├── netlify/
 │   └── functions/
-│       └── airtable-proxy.js    # Server-side proxy (secure)
+│       └── airtable.js    # Server-side proxy (secure)
 ├── netlify.toml                  # Netlify configuration
 ├── js/
 │   ├── config.js                 # Local dev only (not in git)
