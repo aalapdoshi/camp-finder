@@ -1,5 +1,8 @@
 // camp-detail.js - Render a single camp's details based on ?id= query param
 
+// Import functions from airtable.js (they're in global scope)
+// computeRegistrationStatus and formatRegistrationDate are available
+
 async function initCampDetailPage() {
     const loadingEl = document.getElementById('camp-detail-loading');
     const errorEl = document.getElementById('camp-detail-error');
@@ -69,6 +72,24 @@ function renderCampDetail(camp) {
 
     const ageText = (ageMin != null && ageMax != null) ? `${ageMin}-${ageMax}` : null;
 
+    // Compute registration status and format date
+    const registrationStatus = computeRegistrationStatus(fields);
+    const registrationDate = formatRegistrationDate(fields['Registration Opens Date'], fields['Registration Opens Time']);
+    
+    // Get badge class based on status
+    let statusBadgeClass = '';
+    if (registrationStatus === 'Open Now') {
+        statusBadgeClass = 'badge-status-open';
+    } else if (registrationStatus === 'Coming Soon') {
+        statusBadgeClass = 'badge-status-coming-soon';
+    } else if (registrationStatus === 'Not Updated') {
+        statusBadgeClass = 'badge-status-not-updated';
+    }
+    
+    // Build registration status badge HTML
+    const registrationBadgeHtml = registrationStatus ? 
+        `<span class="badge ${statusBadgeClass}">${registrationStatus}</span>` : '';
+
     const metaItems = [];
     if (ageText) {
         metaItems.push({
@@ -86,6 +107,12 @@ function renderCampDetail(camp) {
         metaItems.push({
             label: 'Location',
             value: locationName ? `${locationName}, ${city}` : city
+        });
+    }
+    if (registrationDate) {
+        metaItems.push({
+            label: 'Registration',
+            value: registrationDate
         });
     }
 
@@ -157,7 +184,10 @@ function renderCampDetail(camp) {
     return `
         <header class="camp-detail-header">
             <div class="camp-detail-header-top">
-                <span class="camp-category">${category}</span>
+                <div>
+                    <span class="camp-category">${category}</span>
+                    ${registrationBadgeHtml}
+                </div>
                 <h1 class="camp-detail-title">${name}</h1>
             </div>
             ${afterCareHtml}

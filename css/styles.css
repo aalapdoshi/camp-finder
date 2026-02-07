@@ -245,6 +245,7 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
+    margin-right: 0.5rem;
 }
 
 .camp-name {
@@ -293,6 +294,22 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
+}
+
+/* Registration Status Badges - Color Coded */
+.badge-status-open {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-status-coming-soon {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-status-not-updated {
+    background: #e5e7eb;
+    color: #374151;
 }
 
 .btn-view-details {
@@ -631,6 +648,13 @@ body {
 
 .camp-detail-header-top {
     margin-bottom: 1rem;
+}
+
+.camp-detail-header-top > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .camp-detail-title {

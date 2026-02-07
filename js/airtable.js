@@ -273,8 +273,29 @@ function createCampCard(camp) {
       descriptionText = desc.length > 120 ? desc.substring(0, 120) + '...' : desc;
     }
     
+    // Compute registration status and format date
+    const registrationStatus = computeRegistrationStatus(fields);
+    const registrationDate = formatRegistrationDate(fields['Registration Opens Date'], fields['Registration Opens Time']);
+    
+    // Get badge class based on status
+    let statusBadgeClass = '';
+    if (registrationStatus === 'Open Now') {
+        statusBadgeClass = 'badge-status-open';
+    } else if (registrationStatus === 'Coming Soon') {
+        statusBadgeClass = 'badge-status-coming-soon';
+    } else if (registrationStatus === 'Not Updated') {
+        statusBadgeClass = 'badge-status-not-updated';
+    }
+    
+    // Build registration status badge HTML
+    const registrationBadgeHtml = registrationStatus ? 
+        `<span class="badge ${statusBadgeClass}">${registrationStatus}</span>` : '';
+    
     card.innerHTML = `
-        <div class="camp-category">${fields['Primary Category'] || 'General'}</div>
+        <div>
+            <span class="camp-category">${fields['Primary Category'] || 'General'}</span>
+            ${registrationBadgeHtml}
+        </div>
         <h3 class="camp-name">${fields['Camp Name']}</h3>
         ${descriptionText ? `<p class="camp-short-desc">${descriptionText}</p>` : ''}
         
@@ -295,6 +316,12 @@ function createCampCard(camp) {
             <div class="camp-detail-item">
                 <span class="detail-label">Location:</span>
                 <span class="detail-value">${fields['City']}</span>
+            </div>
+            ` : ''}
+            ${registrationDate ? `
+            <div class="camp-detail-item">
+                <span class="detail-label">Registration:</span>
+                <span class="detail-value">${registrationDate}</span>
             </div>
             ` : ''}
         </div>
@@ -340,6 +367,76 @@ function createCategoryCard(category) {
     `;
 
     return card;
+}
+
+/**
+ * Compute registration status from camp fields
+ * Hybrid approach: Use Registration Status from Airtable if present and valid,
+ * otherwise compute from Registration Opens Date
+ */
+function computeRegistrationStatus(campFields) {
+    const validStatuses = ['Open Now', 'Coming Soon', 'Not Updated'];
+    
+    // First, check if Registration Status exists and is valid
+    if (campFields['Registration Status'] && validStatuses.includes(campFields['Registration Status'])) {
+        return campFields['Registration Status'];
+    }
+    
+    // Otherwise, compute from Registration Opens Date
+    const dateStr = campFields['Registration Opens Date'];
+    if (!dateStr || dateStr.toString().trim() === '') {
+        return 'Not Updated';
+    }
+    
+    try {
+        // Parse YYYY-MM-DD format
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const registrationDate = new Date(year, month - 1, day);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+        
+        // Compare dates
+        if (registrationDate < today) {
+            return 'Open Now';
+        } else {
+            return 'Coming Soon';
+        }
+    } catch (error) {
+        console.error('Error parsing registration date:', error);
+        return 'Not Updated';
+    }
+}
+
+/**
+ * Format registration date for display
+ * Converts YYYY-MM-DD to "Feb 2, 2026" format
+ * Appends time if available: "Feb 2, 2026 at 7am"
+ */
+function formatRegistrationDate(dateStr, timeStr) {
+    if (!dateStr || dateStr.toString().trim() === '') {
+        return null;
+    }
+    
+    try {
+        // Parse YYYY-MM-DD format
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        
+        // Format as "Feb 2, 2026"
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const formattedDate = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        
+        // Append time if available
+        if (timeStr && timeStr.toString().trim() !== '') {
+            return `${formattedDate} at ${timeStr.toString().trim()}`;
+        }
+        
+        return formattedDate;
+    } catch (error) {
+        console.error('Error formatting registration date:', error);
+        return null;
+    }
 }
 
 /**
