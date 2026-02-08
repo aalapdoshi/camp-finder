@@ -18,7 +18,6 @@
                 <div class="nav-links">
                     <a href="browse.html">Browse Camps</a>
                     <a href="about.html">About</a>
-                    <a href="#" id="chat-trigger">Ask AI ✨</a>
                 </div>
             </div>
         </div>
@@ -30,60 +29,41 @@
             <h1 class="hero-title">Find Your Perfect Summer Camp</h1>
             <p class="hero-subtitle">Discover amazing summer experiences for kids ages 5-12 in Ann Arbor</p>
             
-            <!-- AI-Powered Search -->
+            <!-- Search Box -->
             <div class="hero-search">
-                <div class="search-box">
-                    <input 
-                        type="text" 
-                        id="ai-search" 
-                        placeholder="Try: 'Find science camps for my 9-year-old under $400/week'"
-                        class="search-input"
-                    >
-                    <button class="search-btn" onclick="handleAISearch()">
-                        Ask AI ✨
-                    </button>
+                <div class="browse-filter-group browse-filter-search">
+                    <label for="homepage-search">Search camps</label>
+                    <div class="hero-search-box">
+                        <input
+                            type="text"
+                            id="homepage-search"
+                            class="search-input"
+                            placeholder="Search by name, interests, description..."
+                        >
+                        <button id="homepage-search-btn" class="search-btn" type="button">Search</button>
+                    </div>
                 </div>
-                <div class="quick-searches">
-                    <span class="quick-label">Popular searches:</span>
-                    <button class="quick-search-btn" onclick="quickSearch('art camps')">Art Camps</button>
-                    <button class="quick-search-btn" onclick="quickSearch('after care')">With After Care</button>
-                    <button class="quick-search-btn" onclick="quickSearch('under $300')">Budget Friendly</button>
-                    <button class="quick-search-btn" onclick="quickSearch('nature camps')">Nature & Outdoor</button>
+                <div class="browse-filter-group browse-filter-aftercare hero-checkbox">
+                    <label for="homepage-aftercare">
+                        <input type="checkbox" id="homepage-aftercare">
+                        With after care
+                    </label>
                 </div>
             </div>
 
             <div class="hero-stats">
                 <div class="stat">
-                    <div class="stat-number" id="total-camps">82</div>
+                    <div class="stat-number" id="total-camps">Loading...</div>
                     <div class="stat-label">Summer Camps</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">5-15</div>
+                    <div class="stat-number" id="age-range">Loading...</div>
                     <div class="stat-label">Age Range</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">$0-$600</div>
+                    <div class="stat-number" id="price-range">Loading...</div>
                     <div class="stat-label">Price Range</div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Featured Camps -->
-    <section class="featured-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Featured Camps</h2>
-                <p>Top picks recommended by parents and our AI</p>
-            </div>
-            
-            <div id="featured-camps" class="camps-grid">
-                <!-- Featured camps will load here -->
-                <div class="loading">Loading featured camps...</div>
-            </div>
-
-            <div class="section-cta">
-                <a href="browse.html" class="btn-primary">Browse All Camps →</a>
             </div>
         </div>
     </section>
@@ -99,33 +79,9 @@
             <div class="categories-grid" id="categories-grid">
                 <!-- Categories will load here -->
             </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section class="how-it-works">
-        <div class="container">
-            <div class="section-header">
-                <h2>How CampFinder Works</h2>
-                <p>Finding the perfect camp is easy with AI assistance</p>
-            </div>
             
-            <div class="steps">
-                <div class="step">
-                    <div class="step-icon">🤖</div>
-                    <h3>Chat with AI</h3>
-                    <p>Tell our friendly AI about your child's age, interests, and budget</p>
-                </div>
-                <div class="step">
-                    <div class="step-icon">🎯</div>
-                    <h3>Get Recommendations</h3>
-                    <p>Receive personalized camp suggestions based on what matters to you</p>
-                </div>
-                <div class="step">
-                    <div class="step-icon">📅</div>
-                    <h3>Register & Go</h3>
-                    <p>Click through to register directly with your chosen camps</p>
-                </div>
+            <div class="section-cta">
+                <a href="browse.html" class="btn-primary">Browse All Camps →</a>
             </div>
         </div>
     </section>
@@ -156,7 +112,6 @@
                     <ul>
                         <li><a href="browse.html">Browse Camps</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="#" onclick="openChat()">Ask AI</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -173,33 +128,52 @@
     <!-- AI Chat Widget (will be injected) -->
     <div id="chat-widget"></div>
 
+    <!-- Feedback Floating Button -->
+    <button id="feedback-button" class="feedback-button" aria-label="Provide feedback">
+        💬 Feedback
+    </button>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-backdrop" class="feedback-backdrop"></div>
+    <div id="feedback-modal" class="feedback-modal" role="dialog" aria-labelledby="feedback-title" aria-modal="true">
+        <button id="feedback-close" class="feedback-close" aria-label="Close feedback form">×</button>
+        <h2 id="feedback-title" class="feedback-title">Share Your Feedback</h2>
+        <form id="feedback-form" class="feedback-form">
+            <div class="feedback-question">
+                <label for="feedback-rating">How helpful was CampFinder?</label>
+                <div class="rating-buttons" role="group" aria-label="Rating">
+                    <button type="button" class="rating-btn" aria-label="Rate 1 out of 5">1</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 2 out of 5">2</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 3 out of 5">3</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 4 out of 5">4</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 5 out of 5">5</button>
+                </div>
+            </div>
+            <div class="feedback-question">
+                <label for="feedback-suggestions">Any suggestions? (optional)</label>
+                <textarea 
+                    id="feedback-suggestions" 
+                    name="suggestions" 
+                    rows="4" 
+                    placeholder="Share your thoughts, ideas, or suggestions..."
+                    class="feedback-textarea"
+                ></textarea>
+            </div>
+            <div id="feedback-error" class="feedback-error" style="display: none;"></div>
+            <div id="feedback-success" class="feedback-success" style="display: none;">
+                Thank you for your feedback! 🙏
+            </div>
+            <button type="submit" id="feedback-submit" class="feedback-submit">Submit Feedback</button>
+        </form>
+    </div>
+
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/airtable.js"></script>
     <script src="js/ai-chat.js"></script>
     <script src="js/main.js"></script>
     
-    <script>
-        // Load featured camps on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            debugger;
-            await loadFeaturedCamps();
-            await loadCategories();
-        });
-
-        function quickSearch(query) {
-            localStorage.setItem('searchQuery', query);
-            window.location.href = 'browse.html';
-        }
-
-        function handleAISearch() {
-            const query = document.getElementById('ai-search').value;
-            if (query) {
-                openChatWithQuery(query);
-            } else {
-                openChat();
-            }
-        }
-    </script>
+    <script src="js/homepage.js"></script>
+    <script src="js/feedback.js"></script>
 </body>
 </html>
