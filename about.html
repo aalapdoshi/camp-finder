@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampFinder - Find Your Perfect Summer Camp in Ann Arbor</title>
-    <meta name="description" content="Discover the perfect summer camp for your child in Ann Arbor. Browse 80+ camps with AI-powered recommendations.">
+    <title>About - CampFinder</title>
+    <meta name="description" content="Learn about CampFinder, created by Ann Arbor parents to make summer camp planning easier.">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -23,81 +23,48 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
+    <main class="about-page">
         <div class="container">
-            <h1 class="hero-title">Find Your Perfect Summer Camp</h1>
-            <p class="hero-subtitle">Discover amazing summer experiences for kids ages 5-12 in Ann Arbor</p>
-            
-            <!-- Search Box -->
-            <div class="hero-search">
-                <div class="browse-filter-group browse-filter-search">
-                    <label for="homepage-search">Search camps</label>
-                    <div class="hero-search-box">
-                        <input
-                            type="text"
-                            id="homepage-search"
-                            class="search-input"
-                            placeholder="Search by name, interests, description..."
-                        >
-                        <button id="homepage-search-btn" class="search-btn" type="button">Search</button>
-                    </div>
-                </div>
-                <div class="browse-filter-group browse-filter-aftercare hero-checkbox">
-                    <label for="homepage-aftercare">
-                        <input type="checkbox" id="homepage-aftercare">
-                        With after care
-                    </label>
-                </div>
-            </div>
+            <header class="about-header">
+                <h1>About This Project</h1>
+            </header>
 
-            <div class="hero-stats">
-                <div class="stat">
-                    <div class="stat-number" id="total-camps">Loading...</div>
-                    <div class="stat-label">Summer Camps</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="age-range">Loading...</div>
-                    <div class="stat-label">Age Range</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="price-range">Loading...</div>
-                    <div class="stat-label">Price Range</div>
-                </div>
-            </div>
-        </div>
-    </section>
+            <section class="about-content">
+                <p>This tool was created by Ann Arbor parents Komal and Aalap Doshi as a small contribution to something much bigger: the incredible <a href="https://docs.google.com/spreadsheets/d/1FfiziYg5Ow-BlHqFRSWl2d3I-Uh7iy8W53lmpLSVfEU/edit?gid=0#gid=0" target="_blank">summer camp spreadsheet</a> that Crystal Hoppe has coordinated and maintained for over ten years.</p>
 
-    <!-- Browse by Category -->
-    <section class="categories-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Browse by Interest</h2>
-                <p>Find camps that match your child's passions</p>
-            </div>
-            
-            <div class="categories-grid" id="categories-grid">
-                <!-- Categories will load here -->
-            </div>
-            
-            <div class="section-cta">
-                <a href="browse.html" class="btn-primary">Browse All Camps →</a>
-            </div>
-        </div>
-    </section>
+                <p>We've relied on Crystal's spreadsheet for years to help organize summer plans for our own kids. We built this tool as an addition to that amazing work—not a replacement for it—with the goal of making the information easier to explore and use.</p>
 
-    <!-- Testimonial/Trust -->
-    <section class="trust-section">
-        <div class="container">
-            <div class="trust-content">
-                <div class="trust-text">
-                    <h2>Trusted by Ann Arbor Families</h2>
-                    <p>Created by Ann Arbor parents Komal and Aalap Doshi as a community tool to make summer camp planning easier for families.</p>
-                    <a href="about.html" class="btn-secondary">Learn Our Story →</a>
-                </div>
-            </div>
+                <p>Our hope is to continue developing this tool so that parents can quickly:</p>
+
+                <ul>
+                    <li>Filter camps by age, interests, and schedule</li>
+                    <li>Save favorites</li>
+                    <li>View options more easily</li>
+                    <li>Sync plans with their family calendar</li>
+                </ul>
+
+                <p>Most of all, we want to make summer planning a little less stressful.</p>
+
+                <h2>Why We're Doing This</h2>
+
+                <p>We're parents first, and like many families, we found ourselves juggling spreadsheets, tabs, and calendars each spring. We kept wishing this incredible resource could be easier to personalize for our own families—and that idea became this project.</p>
+
+                <p>We're committed to making this tool better over time, and we'd love your help. If there's something you wish it could do or something that would make it more useful, please tell us using the Feedback link at the bottom of this page. Your feedback will shape what we build next.</p>
+
+                <h2>Who We Are</h2>
+
+                <p>We're long-time Ann Arbor parents who care about building practical, community-centered tools.</p>
+
+                <p><strong>Aalap Doshi</strong> is Director of IT at ICPSR and teaches at the University of Michigan School of Information. <a href="https://aalapdoshi.com/" target="_blank" rel="noopener noreferrer">Aalap's website</a>.</p>
+
+                <p><strong>Komal Doshi</strong> leads electrification and mobility at Walker Miller Energy Services and previously worked on innovation initiatives at Ann Arbor Spark. <a href="https://www.linkedin.com/in/komal-d312/" target="_blank" rel="noopener noreferrer">Komal's LinkedIn</a>.</p>
+
+                <h2>With Gratitude</h2>
+
+                <p>This project exists because of the decade of work Crystal Hoppe has put into the summer camp spreadsheet. We're deeply grateful for that effort and hope this tool simply helps extend its usefulness for more families.</p>
+            </section>
         </div>
-    </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -124,9 +91,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- AI Chat Widget (will be injected) -->
-    <div id="chat-widget"></div>
 
     <!-- Feedback Floating Button -->
     <button id="feedback-button" class="feedback-button" aria-label="Provide feedback">
@@ -172,8 +136,6 @@
     <script src="js/airtable.js"></script>
     <script src="js/ai-chat.js"></script>
     <script src="js/main.js"></script>
-    
-    <script src="js/homepage.js"></script>
     <script src="js/feedback.js"></script>
 </body>
 </html>
