@@ -30,7 +30,10 @@ Create an automated daily sync that updates Airtable `Camps` table from a Google
 | `Address` | `Address` | Copy full address string as-is |
 | `Cost` | `Cost Per Week` | Extract numeric value (e.g., "$600/week" → 600, or "199" → 199). Uses `getDisplayValue()` to handle formatted numbers. |
 | `Cost` | `Cost Display` | Use full cost string as-is |
-| `Registration Details (2026)` | `Registration Notes` | Direct copy (if not empty) |
+| `Registration Status` | `Registration Status` | Parse to standardized values (OPEN, COMING_SOON, NOT_UPDATED, Unknown) |
+| `Registration Details (2026)` | `Registration Opens Date` | Parse date from text (YYYY-MM-DD format, if found) |
+| `Registration Details (2026)` | `Registration Opens Time` | Parse time from text (if found) |
+| `Registration Details (2026)` | `Registration Notes` | Direct copy (original text preserved) |
 | `Days/Times` | `Schedule Notes` | Direct copy (if not empty) |
 | `Before / After Care?` | `Extended Care Notes` | Direct copy (if not empty) |
 | `Before / After Care?` | `Has After Care` | Parse to boolean (non-empty, not "N/A", not "No" → true) |
@@ -120,10 +123,44 @@ Create an automated daily sync that updates Airtable `Camps` table from a Google
 2. If empty, "n/a", or "no" → false
 3. Otherwise → true
 
+### Registration Status Parsing
+
+**Algorithm:**
+1. Read Registration Status column value
+2. Match against patterns:
+   - "OPEN for 2026" → "OPEN"
+   - "Coming Soon for 2026..." → "COMING_SOON"
+   - "Not yet updated for 2026" → "NOT_UPDATED"
+   - Empty or no match → "Unknown"
+3. Always set Registration Status field (never empty)
+
+### Registration Date/Time Parsing
+
+**Date Extraction:**
+1. Extract year from context first (if available):
+   - Patterns: "2026 Summer Camps", "for 2026", "2026 enrollment", "Summer 2026"
+2. Parse Registration Details text for date patterns:
+   - "Jan 23, 2026", "January 20th, 2026", "Feb 1st, 2026" (explicit year - highest priority)
+   - "February 24th", "March 11" (no explicit year - use context year or current year)
+3. Year priority:
+   - Explicit year in date pattern takes precedence
+   - If no explicit year, use context year if found
+   - If no context year, use current year (don't assume next year)
+4. If multiple dates found, extract earliest date
+5. Convert to YYYY-MM-DD format
+6. Only set Registration Opens Date field if date found (omit if not found)
+
+**Time Extraction:**
+1. Parse Registration Details text for time patterns:
+   - "@ 7am", "@ 10:00A", "at 8:00 AM"
+   - "at noon", "at 12pm", "at 6:00 p.m."
+2. Extract time string as-is
+3. Only set Registration Opens Time field if time found (omit if not found)
+
 ### Field Mapping (Separate Fields)
 
 **Mapping:**
-- `Registration Details` → `Registration Notes` (direct copy)
+- `Registration Details` → `Registration Notes` (direct copy - original text preserved)
 - `Days/Times` → `Schedule Notes` (direct copy)
 - `Before / After Care?` → `Extended Care Notes` (direct copy)
 

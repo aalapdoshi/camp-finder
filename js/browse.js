@@ -56,6 +56,7 @@ async function initBrowsePage() {
         // Seed from localStorage (quickSearch/category cards)
         const storedSearch = localStorage.getItem('searchQuery');
         const storedCategory = localStorage.getItem('categoryFilter');
+        const storedAfterCare = localStorage.getItem('afterCareFilter');
 
         if (storedSearch && searchInput) {
             browseFilters.searchQuery = storedSearch;
@@ -67,6 +68,12 @@ async function initBrowsePage() {
             browseFilters.category = storedCategory;
             categorySelect.value = storedCategory;
             localStorage.removeItem('categoryFilter');
+        }
+
+        if (storedAfterCare === 'true' && afterCareCheckbox) {
+            browseFilters.afterCare = true;
+            afterCareCheckbox.checked = true;
+            localStorage.removeItem('afterCareFilter');
         }
 
         // Wire up events

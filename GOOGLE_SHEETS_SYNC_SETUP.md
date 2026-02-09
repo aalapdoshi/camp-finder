@@ -78,10 +78,47 @@
 - Full text also copied to `Extended Care Notes` field
 
 ### Field Mapping (Separate Fields)
-- `Registration Details` → `Registration Notes` (direct copy)
+- `Registration Status` → `Registration Status` (parsed: 'Open Now', 'Coming Soon', 'Not Updated', or blank if no match)
+- `Registration Details` → `Registration Opens Date` (parsed date in YYYY-MM-DD format, if found)
+- `Registration Details` → `Registration Opens Time` (parsed time string, if found)
+- `Registration Details` → `Registration Notes` (direct copy - original text preserved)
 - `Days/Times` → `Schedule Notes` (direct copy)
 - `Before / After Care?` → `Extended Care Notes` (direct copy)
 - No longer combines into single `Description` field
+
+### Registration Data Parsing
+
+The script now extracts structured registration data from the Registration Details field:
+
+**Registration Status:**
+- "OPEN for 2026" → "Open Now"
+- "Coming Soon for 2026..." → "Coming Soon"
+- "Not yet updated for 2026" → "Not Updated"
+- Empty or no match → Field left blank (warning logged if original value exists)
+
+**Registration Opens Date:**
+- Extracts dates in formats like:
+  - "Jan 23, 2026" → "2026-01-23" (explicit year)
+  - "January 20th, 2026" → "2026-01-20" (explicit year)
+  - "Feb 1st, 2026" → "2026-02-01" (explicit year)
+  - "2026 Summer Camps enrollment begins February 2nd" → "2026-02-02" (year from context)
+  - "February 24th" → uses current year or context year (doesn't assume next year)
+  - "March 11" → uses current year or context year (doesn't assume next year)
+- Year extraction priority:
+  1. Explicit year in date (highest priority)
+  2. Year from context ("2026 Summer Camps", "for 2026", "2026 enrollment", "Summer 2026")
+  3. Current year (if no context year found)
+- If multiple dates found, uses the earliest date
+- If no date found, field is left blank (not set to null)
+
+**Registration Opens Time:**
+- Extracts times in formats like:
+  - "@ 7am" → "7am"
+  - "@ 10:00A" → "10:00A"
+  - "at 8:00 AM" → "8:00 AM"
+  - "at noon" → "noon"
+  - "at 12pm" → "12pm"
+- If no time found, field is left blank (not set to null)
 
 ## Troubleshooting
 
