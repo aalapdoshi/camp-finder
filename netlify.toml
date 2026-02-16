@@ -9,3 +9,9 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+# Redirect old homepage URL to root (for bookmarks)
+[[redirects]]
+  from = "/campfinder_index.html"
+  to = "/"
+  status = 301

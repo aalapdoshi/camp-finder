@@ -156,7 +156,7 @@ async function handleFeedbackSubmit(e) {
     }
 
     // Get current page
-    const page = window.location.pathname.split('/').pop() || 'campfinder_index.html';
+    const page = window.location.pathname.split('/').pop() || 'index.html';
 
     try {
         // Determine API endpoint (Netlify or local)
