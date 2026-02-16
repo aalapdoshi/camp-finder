@@ -4,7 +4,8 @@
 
 // Check if we're running on Netlify (using proxy) or locally (direct API)
 const IS_NETLIFY = window.location.hostname.includes('netlify.app') || 
-                   window.location.hostname.includes('netlify.com');
+                   window.location.hostname.includes('netlify.com') ||
+                   window.location.hostname.includes('a2campfinder.com');
 
 // Local development: Use direct API keys
 // Netlify: Uses proxy functions (no keys in client code)
