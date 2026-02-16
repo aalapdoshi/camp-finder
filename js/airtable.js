@@ -372,35 +372,45 @@ function createCategoryCard(category) {
 /**
  * Compute registration status from camp fields
  * Hybrid approach: Use Registration Status from Airtable if present and valid,
- * otherwise compute from Registration Opens Date
+ * but override to "Open Now" when date is in the past and status is not "Not Updated"
  */
 function computeRegistrationStatus(campFields) {
     const validStatuses = ['Open Now', 'Coming Soon', 'Not Updated'];
-    
-    // First, check if Registration Status exists and is valid
-    if (campFields['Registration Status'] && validStatuses.includes(campFields['Registration Status'])) {
-        return campFields['Registration Status'];
-    }
-    
-    // Otherwise, compute from Registration Opens Date
+    const storedStatus = campFields['Registration Status'];
     const dateStr = campFields['Registration Opens Date'];
+
+    // If we have a date and it's in the past, and status is not "Not Updated",
+    // override to "Open Now" (fixes stale "Coming Soon" when registration has opened)
+    if (dateStr && dateStr.toString().trim() !== '') {
+        try {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const registrationDate = new Date(year, month - 1, day);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (registrationDate < today && storedStatus !== 'Not Updated') {
+                return 'Open Now';
+            }
+        } catch (error) {
+            console.error('Error parsing registration date:', error);
+        }
+    }
+
+    // Trust Airtable status if valid
+    if (storedStatus && validStatuses.includes(storedStatus)) {
+        return storedStatus;
+    }
+
+    // Otherwise, compute from Registration Opens Date
     if (!dateStr || dateStr.toString().trim() === '') {
         return 'Not Updated';
     }
-    
+
     try {
-        // Parse YYYY-MM-DD format
         const [year, month, day] = dateStr.split('-').map(Number);
         const registrationDate = new Date(year, month - 1, day);
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to compare dates only
-        
-        // Compare dates
-        if (registrationDate < today) {
-            return 'Open Now';
-        } else {
-            return 'Coming Soon';
-        }
+        today.setHours(0, 0, 0, 0);
+        return registrationDate < today ? 'Open Now' : 'Coming Soon';
     } catch (error) {
         console.error('Error parsing registration date:', error);
         return 'Not Updated';
