@@ -1,6 +1,7 @@
 // browse.js - Browse and filter camps
 
 let browseCamps = [];
+let browseSavedCampIds = new Set();
 let browseFilters = {
     searchQuery: '',
     age: '',
@@ -29,6 +30,11 @@ async function initBrowsePage() {
     try {
         // Load initial data
         browseCamps = await fetchCamps();
+        const session = await getSession();
+        if (session?.user?.id) {
+            const ids = await getSavedCampIds();
+            browseSavedCampIds = new Set(ids);
+        }
         const [cities, categories] = await Promise.all([
             getCities(),
             getCategories()
@@ -149,6 +155,13 @@ async function initBrowsePage() {
             clearBtn2.addEventListener('click', clearAll);
         }
 
+        // Callback when user toggles favorite (refresh saved IDs)
+        window.onFavoriteToggled = async () => {
+            const ids = await getSavedCampIds();
+            browseSavedCampIds = new Set(ids);
+            applyBrowseFiltersAndRender();
+        };
+
         // Initial render
         applyBrowseFiltersAndRender();
     } catch (error) {
@@ -203,7 +216,8 @@ function applyBrowseFiltersAndRender() {
     }
 
     filtered.forEach(camp => {
-        const card = createCampCard(camp);
+        const isSaved = browseSavedCampIds.has(camp.id);
+        const card = createCampCard(camp, { isSaved });
         resultsContainer.appendChild(card);
     });
 }

@@ -1,0 +1,9 @@
+{
+  "name": "a2campfinder",
+  "version": "1.0.0",
+  "description": "A2CampFinder - Find summer camps in Ann Arbor",
+  "dependencies": {
+    "jose": "^5.2.0",
+    "dotenv": "^16.3.1"
+  }
+}

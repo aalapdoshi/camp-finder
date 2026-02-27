@@ -1,7 +1,7 @@
 // camp-detail.js - Render a single camp's details based on ?id= query param
 
-// Import functions from airtable.js (they're in global scope)
-// computeRegistrationStatus and formatRegistrationDate are available
+// Uses: airtable.js (computeRegistrationStatus, formatRegistrationDate, getCampById)
+//       auth.js (getSession), favorites.js (addFavorite, removeFavorite, isFavorite)
 
 async function initCampDetailPage() {
     const loadingEl = document.getElementById('camp-detail-loading');
@@ -33,7 +33,12 @@ async function initCampDetailPage() {
         if (loadingEl) loadingEl.style.display = 'none';
         if (detailEl) {
             detailEl.style.display = 'block';
-            detailEl.innerHTML = renderCampDetail(camp);
+            const session = await getSession();
+            const isLoggedIn = !!session?.user?.id;
+            const savedIds = isLoggedIn ? await getSavedCampIds() : [];
+            const isSaved = savedIds.includes(campId);
+            detailEl.innerHTML = renderCampDetail(camp, { isSaved, isLoggedIn });
+            if (isLoggedIn) wireFavoriteButton(detailEl, campId, isSaved);
         }
     } catch (error) {
         console.error('Error loading camp detail:', error);
@@ -42,7 +47,42 @@ async function initCampDetailPage() {
     }
 }
 
-function renderCampDetail(camp) {
+/**
+ * Wire up the favorite button click handler.
+ */
+function wireFavoriteButton(container, campId, initialSaved) {
+    const btn = container.querySelector('.btn-favorite-toggle');
+    if (!btn) return;
+    const state = { isSaved: initialSaved };
+    btn.addEventListener('click', async () => {
+        const session = await getSession();
+        if (!session?.user?.id) {
+            const redirectTo = encodeURIComponent(`camp-detail.html?id=${campId}`);
+            window.location.href = `login.html?redirectTo=${redirectTo}`;
+            return;
+        }
+        if (state.isSaved) {
+            const ok = await removeFavorite(campId);
+            if (ok) {
+                btn.textContent = 'Add to Favorites';
+                btn.classList.remove('btn-favorite-remove');
+                btn.classList.add('btn-favorite-add');
+                state.isSaved = false;
+            }
+        } else {
+            const ok = await addFavorite(campId);
+            if (ok) {
+                btn.textContent = 'Remove from Favorites';
+                btn.classList.remove('btn-favorite-add');
+                btn.classList.add('btn-favorite-remove');
+                state.isSaved = true;
+            }
+        }
+    });
+}
+
+function renderCampDetail(camp, options = {}) {
+    const { isSaved = false, isLoggedIn = false } = options;
     const fields = camp.fields || {};
 
     const name = fields['Camp Name'] || 'Camp';
@@ -181,6 +221,12 @@ function renderCampDetail(camp) {
         </a>
     ` : '';
 
+    const favoriteButtonHtml = isLoggedIn
+        ? (isSaved
+            ? `<button type="button" class="btn-favorite-toggle btn-favorite-remove">Remove from Favorites</button>`
+            : `<button type="button" class="btn-favorite-toggle btn-favorite-add">Add to Favorites</button>`)
+        : `<a href="login.html?redirectTo=${encodeURIComponent('camp-detail.html?id=' + camp.id)}" class="btn-secondary">Log in to save favorites</a>`;
+
     return `
         <header class="camp-detail-header">
             <div class="camp-detail-header-top">
@@ -194,7 +240,10 @@ function renderCampDetail(camp) {
             <div class="camp-detail-meta">
                 ${metaHtml}
             </div>
-            ${websiteButton}
+            <div class="camp-detail-actions">
+                ${websiteButton}
+                ${favoriteButtonHtml}
+            </div>
         </header>
 
         ${description ? `

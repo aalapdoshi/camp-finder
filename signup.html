@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PGXHQ4PY3C"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PGXHQ4PY3C');
+    </script>
+    <title>Sign up - A2CampFinder</title>
+    <meta name="description" content="Create an A2CampFinder account to save your favorite summer camps.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">🏕️ A2CampFinder</a>
+                <div class="nav-links">
+                    <a href="browse.html">Browse Camps</a>
+                    <a href="about.html">About</a>
+                    <span id="nav-auth">
+                        <a href="login.html">Log in</a>
+                        <a href="signup.html">Sign up</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="auth-page">
+        <div class="container">
+            <div class="auth-card">
+                <h1>Sign up</h1>
+                <p class="auth-subtitle">Create an account to save your favorite camps and access your list.</p>
+                <div class="auth-buttons">
+                    <button type="button" id="auth-google" class="btn-auth btn-auth-google">
+                        Sign up with Google
+                    </button>
+                    <button type="button" id="auth-facebook" class="btn-auth btn-auth-facebook">
+                        Sign up with Facebook
+                    </button>
+                </div>
+                <p class="auth-link-text">
+                    Already have an account? <a href="login.html">Log in</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>A2CampFinder</h4>
+                    <p>Helping Ann Arbor families find the perfect summer camp since 2026.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="browse.html">Browse Camps</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li id="footer-auth">
+                            <a href="login.html">Log in</a>
+                            <a href="signup.html">Sign up</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p>Questions? Email us at<br>hello@campfinder.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 A2CampFinder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const redirectTo = params.get('redirectTo') || null;
+
+            document.getElementById('auth-google').addEventListener('click', () => signInWithGoogle(redirectTo));
+            document.getElementById('auth-facebook').addEventListener('click', () => signInWithFacebook(redirectTo));
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAuth);
+            } else {
+                initAuth();
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -3,6 +3,9 @@
  * This keeps API keys server-side and never exposes them to the client
  */
 
+// Load .env for local netlify dev (not needed on Netlify; env vars come from dashboard)
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
+
 exports.handler = async (event, context) => {
   // CORS headers for all responses
   const corsHeaders = {

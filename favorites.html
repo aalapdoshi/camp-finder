@@ -11,8 +11,8 @@
       gtag('js', new Date());
       gtag('config', 'G-PGXHQ4PY3C');
     </script>
-    <title>A2CampFinder - Find Your Perfect Summer Camp in Ann Arbor</title>
-    <meta name="description" content="Discover the perfect summer camp for your child in Ann Arbor. Browse 80+ camps with AI-powered recommendations.">
+    <title>My Favorites - A2CampFinder</title>
+    <meta name="description" content="Your saved summer camps in Ann Arbor.">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -36,81 +36,38 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
+    <main class="favorites-page">
         <div class="container">
-            <h1 class="hero-title">Find Your Perfect Summer Camp</h1>
-            <p class="hero-subtitle">Discover amazing summer experiences for kids ages 5-12 in Ann Arbor</p>
-            
-            <!-- Search Box -->
-            <div class="hero-search">
-                <div class="browse-filter-group browse-filter-search">
-                    <label for="homepage-search">Search camps</label>
-                    <div class="hero-search-box">
-                        <input
-                            type="text"
-                            id="homepage-search"
-                            class="search-input"
-                            placeholder="Search by name, interests, description..."
-                        >
-                        <button id="homepage-search-btn" class="search-btn" type="button">Search</button>
+            <header class="favorites-header">
+                <h1>My Favorites</h1>
+                <p>Your saved summer camps.</p>
+            </header>
+
+            <section class="favorites-content">
+                <div id="favorites-login-prompt" class="favorites-empty" style="display:none;">
+                    <h2>Log in to view your favorites</h2>
+                    <p>Sign in to save and view your favorite camps.</p>
+                    <a href="login.html?redirectTo=favorites.html" class="btn-primary">Log in</a>
+                </div>
+
+                <div id="favorites-empty-state" class="favorites-empty" style="display:none;">
+                    <h2>You haven't saved any camps yet</h2>
+                    <p>Browse camps and tap the heart to save your favorites.</p>
+                    <a href="browse.html" class="btn-primary">Browse Camps</a>
+                </div>
+
+                <div id="favorites-grid-wrap" style="display:none;">
+                    <div id="favorites-results" class="camps-grid">
+                        <!-- Camp cards and unavailable cards rendered here -->
                     </div>
                 </div>
-                <div class="browse-filter-group browse-filter-aftercare hero-checkbox">
-                    <label for="homepage-aftercare">
-                        <input type="checkbox" id="homepage-aftercare">
-                        With after care
-                    </label>
-                </div>
-            </div>
 
-            <div class="hero-stats">
-                <div class="stat">
-                    <div class="stat-number" id="total-camps">Loading...</div>
-                    <div class="stat-label">Summer Camps</div>
+                <div id="favorites-loading" class="loading">
+                    Loading your favorites...
                 </div>
-                <div class="stat">
-                    <div class="stat-number" id="age-range">Loading...</div>
-                    <div class="stat-label">Age Range</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="price-range">Loading...</div>
-                    <div class="stat-label">Price Range</div>
-                </div>
-            </div>
+            </section>
         </div>
-    </section>
-
-    <!-- Browse by Category -->
-    <section class="categories-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Browse by Interest</h2>
-                <p>Find camps that match your child's passions</p>
-            </div>
-            
-            <div class="categories-grid" id="categories-grid">
-                <!-- Categories will load here -->
-            </div>
-            
-            <div class="section-cta">
-                <a href="browse.html" class="btn-primary">Browse All Camps →</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonial/Trust -->
-    <section class="trust-section">
-        <div class="container">
-            <div class="trust-content">
-                <div class="trust-text">
-                    <h2>Trusted by Ann Arbor Families</h2>
-                    <p>Created by Ann Arbor parents Komal Doshi, Aalap Doshi, and Crystal Hoppe as a community tool to make summer camp planning easier for families.</p>
-                    <a href="about.html" class="btn-secondary">Learn Our Story →</a>
-                </div>
-            </div>
-        </div>
-    </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -142,9 +99,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- AI Chat Widget (will be injected) -->
-    <div id="chat-widget"></div>
 
     <!-- Feedback Floating Button -->
     <button id="feedback-button" class="feedback-button" aria-label="Provide feedback">
@@ -189,12 +143,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth-config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/favorites.js"></script>
     <script src="js/config.js"></script>
     <script src="js/airtable.js"></script>
-    <script src="js/ai-chat.js"></script>
     <script src="js/main.js"></script>
-    
-    <script src="js/homepage.js"></script>
+    <script src="js/favorites-page.js"></script>
     <script src="js/feedback.js"></script>
     <script>
         if (document.readyState === 'loading') {
