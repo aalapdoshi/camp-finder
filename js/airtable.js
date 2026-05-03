@@ -300,13 +300,18 @@ function createCampCard(camp, options = {}) {
     const heartAria = isSaved ? 'Remove from favorites' : 'Add to favorites';
     const heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
 
+    const addToPlanHtml = `<button type="button" class="add-to-plan-btn" aria-label="Add to Summer Plan" data-camp-id="${camp.id}" data-camp-name="${(fields['Camp Name'] || '').replace(/"/g, '&quot;')}">📅</button>`;
+
     card.innerHTML = `
         <div class="camp-card-header">
             <div>
                 <span class="camp-category">${fields['Primary Category'] || 'General'}</span>
                 ${registrationBadgeHtml}
             </div>
-            <button type="button" class="${heartClass}" aria-label="${heartAria}" data-camp-id="${camp.id}" data-is-saved="${isSaved}">${heartSvg}</button>
+            <div class="camp-card-actions">
+                ${addToPlanHtml}
+                <button type="button" class="${heartClass}" aria-label="${heartAria}" data-camp-id="${camp.id}" data-is-saved="${isSaved}">${heartSvg}</button>
+            </div>
         </div>
         <h3 class="camp-name">${fields['Camp Name']}</h3>
         ${descriptionText ? `<p class="camp-short-desc">${descriptionText}</p>` : ''}
@@ -342,6 +347,20 @@ function createCampCard(camp, options = {}) {
         
         <a href="camp-detail.html?id=${camp.id}" class="btn-view-details">View Details</a>
     `;
+
+    // Wire Add to plan click
+    const addToPlanBtn = card.querySelector('.add-to-plan-btn');
+    if (addToPlanBtn) {
+        addToPlanBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const campId = addToPlanBtn.dataset.campId;
+            const campName = addToPlanBtn.dataset.campName || 'Camp';
+            if (typeof openAddToPlanModal === 'function') {
+                await openAddToPlanModal(campId, campName);
+            }
+        });
+    }
 
     // Wire heart click: redirect to login if not logged in, else toggle favorite
     const heartBtn = card.querySelector('.heart-icon');

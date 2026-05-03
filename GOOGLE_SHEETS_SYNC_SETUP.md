@@ -15,7 +15,7 @@
 
 4. **Save the Script**:
    - Click the floppy disk icon or press `Ctrl+S` / `Cmd+S`
-   - Name it "CampFinder Sync" (optional)
+   - Name it "A2CampFinder Sync" (optional)
 
 5. **Test the Script**:
    - Click the function dropdown (top center) → select `syncCampsToAirtable`
@@ -23,7 +23,7 @@
    - **First time**: You'll need to authorize the script
      - Click "Review Permissions"
      - Choose your Google account
-     - Click "Advanced" → "Go to CampFinder Sync (unsafe)" (this is safe, it's your own script)
+     - Click "Advanced" → "Go to A2CampFinder Sync (unsafe)" (this is safe, it's your own script)
      - Click "Allow"
    - Check the execution log (View → Logs) for results
    - Check your email (aalap1.doshi@gmail.com) for the summary

@@ -21,7 +21,7 @@ Use OpenAI API to automatically enrich camp data by:
 
 2. **Create API Key**:
    - Click "Create new secret key"
-   - Name it "CampFinder Enrichment" (or similar)
+   - Name it "A2CampFinder Enrichment" (or similar)
    - **Copy the key immediately** (you won't see it again)
    - Store it securely
 

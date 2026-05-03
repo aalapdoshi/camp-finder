@@ -3,12 +3,12 @@
 **Overall Progress:** `0%`
 
 ## TLDR
-Add a subtle floating feedback button that opens a modal form with two questions: "How helpful was CampFinder?" (rating) and "Any suggestions?" (text). Submit feedback to Airtable "Feedback" table via Netlify Function to keep API keys secure.
+Add a subtle floating feedback button that opens a modal form with two questions: "How helpful was A2CampFinder?" (rating) and "Any suggestions?" (text). Submit feedback to Airtable "Feedback" table via Netlify Function to keep API keys secure.
 
 ## Critical Decisions
 - **UI Element**: Floating button (bottom-right corner, subtle, not intrusive)
 - **Questions**: 
-  1. "How helpful was CampFinder?" - Rating (1-5 stars or 1-5 scale)
+  1. "How helpful was A2CampFinder?" - Rating (1-5 stars or 1-5 scale)
   2. "Any suggestions?" - Optional text input
 - **Data Storage**: Airtable "Feedback" table
 - **API Integration**: Netlify Function to proxy Airtable API calls (keeps API keys secure)
@@ -52,7 +52,7 @@ Add a subtle floating feedback button that opens a modal form with two questions
   - [ ] 🟥 Create modal content container
   - [ ] 🟥 Add form with:
     - Title: "Share Your Feedback"
-    - Rating question: "How helpful was CampFinder?"
+    - Rating question: "How helpful was A2CampFinder?"
     - Rating input: Star rating or 1-5 buttons
     - Suggestions question: "Any suggestions?" (optional)
     - Textarea for suggestions

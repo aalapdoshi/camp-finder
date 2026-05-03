@@ -39,12 +39,26 @@ async function initCampDetailPage() {
             const isSaved = savedIds.includes(campId);
             detailEl.innerHTML = renderCampDetail(camp, { isSaved, isLoggedIn });
             if (isLoggedIn) wireFavoriteButton(detailEl, campId, isSaved);
+            wireAddToPlanButton(detailEl, campId, camp.fields['Camp Name'] || 'Camp');
         }
     } catch (error) {
         console.error('Error loading camp detail:', error);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl) errorEl.style.display = 'block';
     }
+}
+
+/**
+ * Wire up the Add to Summer Plan button.
+ */
+function wireAddToPlanButton(container, campId, campName) {
+    const btn = container.querySelector('.btn-add-to-plan');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        if (typeof openAddToPlanModal === 'function') {
+            await openAddToPlanModal(campId, campName);
+        }
+    });
 }
 
 /**
@@ -227,6 +241,10 @@ function renderCampDetail(camp, options = {}) {
             : `<button type="button" class="btn-favorite-toggle btn-favorite-add">Add to Favorites</button>`)
         : `<a href="login.html?redirectTo=${encodeURIComponent('camp-detail.html?id=' + camp.id)}" class="btn-secondary">Log in to save favorites</a>`;
 
+    const addToPlanButtonHtml = isLoggedIn
+        ? `<button type="button" class="btn-add-to-plan">Add to Summer Plan</button>`
+        : `<a href="login.html?redirectTo=${encodeURIComponent('camp-detail.html?id=' + camp.id)}" class="btn-secondary">Log in to add to summer plan</a>`;
+
     return `
         <header class="camp-detail-header">
             <div class="camp-detail-header-top">
@@ -243,6 +261,7 @@ function renderCampDetail(camp, options = {}) {
             <div class="camp-detail-actions">
                 ${websiteButton}
                 ${favoriteButtonHtml}
+                ${addToPlanButtonHtml}
             </div>
         </header>
 

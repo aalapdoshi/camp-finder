@@ -4,7 +4,7 @@
  * Initialize the application
  */
 function initApp() {
-    console.log('CampFinder initialized');
+    console.log('A2CampFinder initialized');
     // Any global initialization code can go here
 }
 

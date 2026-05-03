@@ -11,8 +11,8 @@
       gtag('js', new Date());
       gtag('config', 'G-PGXHQ4PY3C');
     </script>
-    <title>Browse Camps - A2CampFinder</title>
-    <meta name="description" content="Browse and filter summer camps in Ann Arbor by age, price, location, category, and after care.">
+    <title>Summer Plan - A2CampFinder</title>
+    <meta name="description" content="Your summer camp plan for 2026.">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -37,91 +37,56 @@
         </div>
     </nav>
 
-    <main class="browse-page">
+    <main class="summer-plan-page">
         <div class="container">
-            <header class="browse-header">
-                <h1>Browse Summer Camps</h1>
-                <p>Use filters to find the best match for your child.</p>
+            <header class="summer-plan-header">
+                <h1>Summer Plan 2026</h1>
+                <p>Your camps for the summer.</p>
             </header>
 
-            <section class="browse-filters" id="browse-filters">
-                <div class="browse-filters-row">
-                    <div class="browse-filter-group browse-filter-search">
-                        <label for="browse-search">Search camps</label>
-                        <input
-                            type="text"
-                            id="browse-search"
-                            class="search-input"
-                            placeholder="Search by name, interests, description..."
-                        >
+            <section class="summer-plan-content">
+                <div id="summer-plan-login-prompt" class="summer-plan-empty" style="display:none;">
+                    <h2>Log in to view your summer plan</h2>
+                    <p>Sign in to add and view camps in your summer plan.</p>
+                    <a href="login.html?redirectTo=summer-plan.html" class="btn-primary">Log in</a>
+                </div>
+
+                <div id="summer-plan-empty-state" class="summer-plan-empty" style="display:none;">
+                    <h2>Select a camp and add it to the summer to get started.</h2>
+                    <p>Browse camps and add them to your plan with dates.</p>
+                    <a href="browse.html" class="btn-primary">Browse Camps</a>
+                </div>
+
+                <div id="summer-plan-content-wrap" style="display:none;">
+                    <div class="summer-plan-view-tabs">
+                        <button type="button" class="summer-plan-tab active" data-view="list">List</button>
+                        <button type="button" class="summer-plan-tab" data-view="calendar">Calendar</button>
+                    </div>
+
+                    <div id="summer-plan-list-view" class="summer-plan-list-view">
+                        <table class="summer-plan-table" id="summer-plan-table">
+                            <thead>
+                                <tr>
+                                    <th>Camp</th>
+                                    <th>Dates</th>
+                                    <th>Week</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summer-plan-list-body">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="summer-plan-calendar-view" class="summer-plan-calendar-view" style="display:none;">
+                        <div id="summer-plan-calendar-weeks">
+                        </div>
                     </div>
                 </div>
 
-                <div class="browse-filters-row">
-                    <div class="browse-filter-group">
-                        <label for="browse-age">Child's age</label>
-                        <input
-                            type="number"
-                            id="browse-age"
-                            min="3"
-                            max="18"
-                            placeholder="Any"
-                        >
-                    </div>
-
-                    <div class="browse-filter-group">
-                        <label for="browse-max-price">Max price per week ($)</label>
-                        <input
-                            type="number"
-                            id="browse-max-price"
-                            min="0"
-                            step="25"
-                            placeholder="No limit"
-                        >
-                    </div>
-
-                    <div class="browse-filter-group">
-                        <label for="browse-city">City</label>
-                        <select id="browse-city">
-                            <option value="all">All cities</option>
-                        </select>
-                    </div>
-
-                    <div class="browse-filter-group">
-                        <label for="browse-category">Category</label>
-                        <select id="browse-category">
-                            <option value="all">All categories</option>
-                        </select>
-                    </div>
-
-                    <div class="browse-filter-group browse-filter-aftercare">
-                        <label for="browse-aftercare">
-                            <input type="checkbox" id="browse-aftercare">
-                            With after care
-                        </label>
-                    </div>
-                </div>
-
-                <div class="browse-filters-row browse-filters-footer">
-                    <button type="button" id="browse-clear" class="btn-secondary">
-                        Clear filters
-                    </button>
-                    <div class="browse-results-summary">
-                        <span id="browse-results-count">Loading camps...</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="browse-results">
-                <div id="browse-results" class="camps-grid">
-                    <div class="loading">Loading camps...</div>
-                </div>
-                <div id="browse-no-results" class="browse-no-results" style="display:none;">
-                    <h2>No camps match your filters</h2>
-                    <p>Try clearing some filters or broadening your search.</p>
-                    <button type="button" id="browse-clear-2" class="btn-secondary">
-                        Clear filters
-                    </button>
+                <div id="summer-plan-loading" class="loading">
+                    Loading your summer plan...
                 </div>
             </section>
         </div>
@@ -206,9 +171,8 @@
     <script src="js/summer-plan.js"></script>
     <script src="js/config.js"></script>
     <script src="js/airtable.js"></script>
-    <script src="js/ai-chat.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/browse.js"></script>
+    <script src="js/summer-plan-page.js"></script>
     <script src="js/feedback.js"></script>
     <script>
         if (document.readyState === 'loading') {
@@ -219,4 +183,3 @@
     </script>
 </body>
 </html>
-

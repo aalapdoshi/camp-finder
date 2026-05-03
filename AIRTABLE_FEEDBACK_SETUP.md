@@ -29,7 +29,7 @@ You need to add the following fields to your Feedback table. For each field:
   - Decimal places: 0
   - Min: 1
   - Max: 5
-- **Description:** User's rating of how helpful CampFinder was (1-5 scale)
+- **Description:** User's rating of how helpful A2CampFinder was (1-5 scale)
 
 #### Field 2: Suggestions
 

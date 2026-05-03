@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Added
+- Added `DESIGN_SYSTEM.md` — design tokens and UI patterns extracted from Stitch “Summer Camp Weekly Planner Dashboard” screens.
 - Added `camp-detail.html` camp details page (supports `?id=<airtable_record_id>`).
 - Added `js/camp-detail.js` to fetch and render parent-friendly camp details (age, cost, location, description, activities, after care, website).
 - Added `browse.html` browse page with filters for search, age, max price, city, category, and after care.
@@ -16,6 +17,9 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Replaced remaining **CampFinder** product naming with **A2CampFinder** in About copy, `js/main.js` log, and setup/feature docs (`SETUP.md`, enrichment/sync/feedback plans).
+- About page (`about.html`): added full **From Komal and Aalap** section after Crystal’s sign-off and removed the short bridge paragraph before **Why this exists**, matching `ABOUT_HOMEPAGE_CONTENT_PLAN.md`.
+- Rewrote `about.html` with Crystal Hoppe’s narrative interleaved with the site story, parallel short bios (Crystal, Komal, Aalap), and the same feedback invitation; homepage hero and trust copy in `index.html` now echo that story and link to About.
 - Updated `css/styles.css` with styles for the new camp detail page layout and browse page filters/results.
 - Updated `js/camp-detail.js` to display Notes section with Address, Schedule Notes, Registration Notes, and Extended Care Notes.
 - Updated `js/airtable.js` and `js/camp-detail.js` to handle missing age/cost data gracefully (hide fields instead of showing "undefined").

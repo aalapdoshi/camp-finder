@@ -1,4 +1,4 @@
-# CampFinder Setup Guide
+# A2CampFinder Setup Guide
 
 ## Initial Setup
 

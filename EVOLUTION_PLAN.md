@@ -1,4 +1,4 @@
-# CampFinder Evolution Plan: Simple Search Interface
+# A2CampFinder Evolution Plan: Simple Search Interface
 
 ## Current State Analysis
 

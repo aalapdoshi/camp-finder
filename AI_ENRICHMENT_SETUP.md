@@ -11,7 +11,7 @@
 2. **Get API Key**:
    - Navigate to: https://platform.openai.com/api-keys
    - Click "Create new secret key"
-   - Name it "CampFinder Enrichment"
+   - Name it "A2CampFinder Enrichment"
    - **Copy the key immediately** (you won't see it again)
 
 3. **Add to Google Apps Script**:
