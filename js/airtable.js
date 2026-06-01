@@ -5,6 +5,30 @@ let campsCache = null;
 let categoriesCache = null;
 
 /**
+ * Build a user-facing message from an Airtable/proxy fetch failure.
+ */
+function formatCampDataError(status, errData = {}) {
+    const code = errData.errorCode || errData.errors?.[0]?.error;
+    const detail = errData.error || errData.errors?.[0]?.message;
+
+    if (status === 429 || code === 'PUBLIC_API_BILLING_LIMIT_EXCEEDED') {
+        return 'Camp data is temporarily unavailable: Airtable monthly API limit reached. Usage resets each month, or upgrade at airtable.com/pricing.';
+    }
+    if (status === 401) {
+        return 'Camp data unavailable: invalid Airtable API key. For local dev, run netlify dev with .env or set your key in js/config.js.';
+    }
+    if (status === 500 && detail === 'Server configuration error') {
+        return 'Camp data unavailable: missing AIRTABLE_API_KEY or AIRTABLE_BASE_ID. Add them to .env and run netlify dev on port 8888.';
+    }
+    return detail || `Camp data unavailable (HTTP ${status})`;
+}
+
+async function parseAirtableFetchError(response) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(formatCampDataError(response.status, errData));
+}
+
+/**
  * Fetch all camps from Airtable
  */
 async function fetchCamps(forceRefresh = false) {
@@ -29,7 +53,7 @@ async function fetchCamps(forceRefresh = false) {
         const response = await fetch(url, { headers });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            await parseAirtableFetchError(response);
         }
 
         const data = await response.json();
@@ -46,7 +70,9 @@ async function fetchCamps(forceRefresh = false) {
                     `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Camps?offset=${offset}`,
                     { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
                 );
-                if (!nextResponse.ok) break;
+                if (!nextResponse.ok) {
+                    await parseAirtableFetchError(nextResponse);
+                }
                 const nextData = await nextResponse.json();
                 allRecords = allRecords.concat(nextData.records);
                 offset = nextData.offset;
@@ -57,7 +83,7 @@ async function fetchCamps(forceRefresh = false) {
         return campsCache;
     } catch (error) {
         console.error('Error fetching camps:', error);
-        return [];
+        throw error;
     }
 }
 
@@ -86,7 +112,7 @@ async function fetchCategories() {
         const response = await fetch(url, { headers });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            await parseAirtableFetchError(response);
         }
 
         const data = await response.json();
@@ -103,7 +129,9 @@ async function fetchCategories() {
                     `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Categories?offset=${offset}`,
                     { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
                 );
-                if (!nextResponse.ok) break;
+                if (!nextResponse.ok) {
+                    await parseAirtableFetchError(nextResponse);
+                }
                 const nextData = await nextResponse.json();
                 allRecords = allRecords.concat(nextData.records);
                 offset = nextData.offset;
@@ -114,7 +142,7 @@ async function fetchCategories() {
         return categoriesCache;
     } catch (error) {
         console.error('Error fetching categories:', error);
-        return [];
+        throw error;
     }
 }
 
@@ -213,7 +241,7 @@ async function loadFeaturedCamps() {
         });
     } catch (error) {
         console.error('Error loading featured camps:', error);
-        container.innerHTML = '<p class="loading">Unable to load camps. Please refresh the page.</p>';
+        container.innerHTML = `<p class="loading">${error.message || 'Unable to load camps. Please refresh the page.'}</p>`;
     }
 }
 
@@ -253,6 +281,9 @@ async function loadCategories() {
         }
     } catch (error) {
         console.error('Error loading categories:', error);
+        if (container) {
+            container.innerHTML = `<p class="loading">${error.message || 'Unable to load categories.'}</p>`;
+        }
     }
 }
 

@@ -166,11 +166,12 @@ async function initBrowsePage() {
         applyBrowseFiltersAndRender();
     } catch (error) {
         console.error('Error initializing browse page:', error);
+        const message = error.message || 'Unable to load camps. Please refresh the page.';
         if (resultsContainer) {
-            resultsContainer.innerHTML = '<div class="loading">Unable to load camps. Please refresh the page.</div>';
+            resultsContainer.innerHTML = `<div class="loading">${message}</div>`;
         }
         if (resultsCountEl) {
-            resultsCountEl.textContent = 'Unable to load camps.';
+            resultsCountEl.textContent = message;
         }
         if (noResultsEl) {
             noResultsEl.style.display = 'none';

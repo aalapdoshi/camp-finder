@@ -64,7 +64,7 @@ async function initFavoritesPage() {
         console.error('Error loading favorites:', error);
         loadingEl.style.display = 'none';
         if (resultsContainer) {
-            resultsContainer.innerHTML = '<p class="favorites-error">Unable to load favorites. Please refresh the page.</p>';
+            resultsContainer.innerHTML = `<p class="favorites-error">${error.message || 'Unable to load favorites. Please refresh the page.'}</p>`;
         }
     }
 }

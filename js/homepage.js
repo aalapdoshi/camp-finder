@@ -135,7 +135,11 @@ async function updateHomepageStats() {
         }
     } catch (error) {
         console.error('Error updating homepage stats:', error);
-        // Keep "Loading..." text if error occurs
+        const message = error.message || 'Unavailable';
+        ['total-camps', 'age-range', 'price-range'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = message;
+        });
     }
 }
 

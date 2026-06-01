@@ -1,5 +1,7 @@
 # CampPlanner — design system (from Stitch)
 
+**Implementation status (Phase 0–1):** Live app tokens in `css/styles.css` `:root` and homepage hero restyle. **App primary:** `#2563eb` (blue); Stitch reference screens use `#5cee2b` (green). Scope so far: **tokens + hero only** — typography, component reskin, and dark mode are deferred. See `STITCH_DESIGN_PHASE01_PLAN.md`.
+
 Extracted from Stitch project **Summer Camp Weekly Planner Dashboard** (`projects/2433476040581509770`) by reading generated HTML (Tailwind + inline patterns). All listed screens use the same theme tokens.
 
 **Source of truth in code:** `<script id="tailwind-config">` in each screen’s HTML.

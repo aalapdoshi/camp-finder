@@ -17,6 +17,8 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Browse page: **Search and Filter** section title; subtle blue-tinted panel, primary border, shadow, and white inputs on the filter block.
+- Stitch design system Phase 1: `:root` tokens in `css/styles.css` (canvas `#f6f8f6`, `background-dark` / on-primary text, app primary `#2563eb`); homepage hero restyled to dark band (removed purple gradient).
 - Replaced remaining **CampFinder** product naming with **A2CampFinder** in About copy, `js/main.js` log, and setup/feature docs (`SETUP.md`, enrichment/sync/feedback plans).
 - About page (`about.html`): added full **From Komal and Aalap** section after Crystal’s sign-off and removed the short bridge paragraph before **Why this exists**, matching `ABOUT_HOMEPAGE_CONTENT_PLAN.md`.
 - Rewrote `about.html` with Crystal Hoppe’s narrative interleaved with the site story, parallel short bios (Crystal, Komal, Aalap), and the same feedback invitation; homepage hero and trust copy in `index.html` now echo that story and link to About.

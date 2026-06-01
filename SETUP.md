@@ -69,3 +69,13 @@
 - See `NETLIFY_SETUP.md` for complete deployment guide
 - API keys are configured as environment variables in Netlify dashboard
 - The site automatically uses Netlify Functions proxy when deployed
+
+### Local dev: camps not loading / Airtable error
+
+**Use `netlify dev` (recommended):**
+1. Create `.env` in the project root with `AIRTABLE_API_KEY` and `AIRTABLE_BASE_ID`
+2. Run `netlify dev` and open **http://localhost:8888** (port 8888 enables the `/api/airtable` proxy)
+
+**Plain static server** (`python -m http.server`, `npx serve`, etc.): `js/config.js` calls Airtable directly — replace `YOUR_AIRTABLE_API_KEY_HERE` with your real token, or camps will fail with 401.
+
+**HTTP 429 / billing limit:** Airtable returns `PUBLIC_API_BILLING_LIMIT_EXCEEDED` when the workspace hits its monthly API quota. This affects localhost and production until usage resets or you upgrade at [airtable.com/pricing](https://airtable.com/pricing). Check usage in Airtable workspace settings. Longer term, see `AIRTABLE_TO_SUPABASE_PLAN.md` for migrating camp reads off Airtable.

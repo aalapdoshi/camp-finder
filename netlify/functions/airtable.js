@@ -75,10 +75,15 @@ exports.handler = async (event, context) => {
       });
 
       if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        const airtableError = errBody.errors?.[0];
         return {
           statusCode: response.status,
           headers: corsHeaders,
-          body: JSON.stringify({ error: `Airtable API error: ${response.status}` })
+          body: JSON.stringify({
+            error: airtableError?.message || `Airtable API error: ${response.status}`,
+            errorCode: airtableError?.error || null
+          })
         };
       }
 
