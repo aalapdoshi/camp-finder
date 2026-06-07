@@ -109,6 +109,100 @@ async function handleOAuthCallback() {
     return false;
 }
 
+let accountMenuListenersReady = false;
+
+function getAuthRedirectSuffix() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    return currentPage && currentPage !== 'index.html' && currentPage !== 'login.html' && currentPage !== 'signup.html'
+        ? '?redirectTo=' + encodeURIComponent(currentPage)
+        : '';
+}
+
+function getEmailInitial(email) {
+    const local = (email || '').split('@')[0].trim();
+    return local ? local.charAt(0).toUpperCase() : '?';
+}
+
+function closeAllAccountMenus() {
+    document.querySelectorAll('.nav-account-menu').forEach(menu => {
+        menu.hidden = true;
+        const trigger = menu.closest('.nav-account')?.querySelector('.nav-account-trigger');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+}
+
+function ensureAccountMenuListeners() {
+    if (accountMenuListenersReady) return;
+    accountMenuListenersReady = true;
+
+    document.addEventListener('click', closeAllAccountMenus);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAllAccountMenus();
+    });
+}
+
+function wireLogoutButtons(container) {
+    container.querySelectorAll('.auth-logout').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut();
+        });
+    });
+}
+
+function wireAccountMenu(container) {
+    const trigger = container.querySelector('.nav-account-trigger');
+    const menu = container.querySelector('.nav-account-menu');
+    if (!trigger || !menu) return;
+
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willOpen = menu.hidden;
+        closeAllAccountMenus();
+        if (willOpen) {
+            menu.hidden = false;
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+    });
+
+    menu.addEventListener('click', (e) => e.stopPropagation());
+    wireLogoutButtons(menu);
+}
+
+function renderNavAuthSignedIn(email) {
+    const initial = getEmailInitial(email);
+    return `
+        <div class="nav-account">
+            <button type="button" class="nav-account-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="nav-account-menu">
+                <span class="nav-account-avatar" aria-hidden="true">${escapeHtml(initial)}</span>
+                <span class="nav-account-label">My Account</span>
+                <span class="nav-account-chevron" aria-hidden="true">▾</span>
+            </button>
+            <div id="nav-account-menu" class="nav-account-menu" role="menu" hidden>
+                <p class="nav-account-menu-email">${escapeHtml(email)}</p>
+                <button type="button" class="nav-account-menu-item auth-logout" role="menuitem">Log out</button>
+            </div>
+        </div>
+    `;
+}
+
+function renderNavAuthSignedOut() {
+    const redirect = getAuthRedirectSuffix();
+    return `
+        <a href="login.html${redirect}">Log in</a>
+        <a href="signup.html${redirect}">Sign up</a>
+    `;
+}
+
+function renderFooterAuthSignedIn() {
+    return `<a href="#" class="auth-logout nav-auth-link">Log out</a>`;
+}
+
+function renderFooterAuthSignedOut() {
+    const redirect = getAuthRedirectSuffix();
+    return `<a href="login.html${redirect}">Log in</a>`;
+}
+
 /**
  * Update nav and footer auth links based on session.
  * Call on page load and when auth state changes.
@@ -117,29 +211,24 @@ async function handleOAuthCallback() {
 function updateAuthUI(session) {
     const navAuth = document.getElementById('nav-auth');
     const footerAuth = document.getElementById('footer-auth');
-    const elements = [navAuth, footerAuth].filter(Boolean);
+    const email = session?.user?.email || session?.user?.user_metadata?.email || 'Signed in';
 
-    elements.forEach(container => {
-        if (!container) return;
+    if (navAuth) {
+        navAuth.innerHTML = session?.user
+            ? renderNavAuthSignedIn(email)
+            : renderNavAuthSignedOut();
         if (session?.user) {
-            const email = session.user.email || session.user.user_metadata?.email || 'Signed in';
-            container.innerHTML = `
-                <span class="nav-auth-email">${escapeHtml(email)}</span>
-                <a href="#" class="auth-logout nav-auth-link">Log out</a>
-            `;
-            const logoutBtn = container.querySelector('.auth-logout');
-            if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); signOut(); });
-        } else {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            const redirect = currentPage && currentPage !== 'index.html' && currentPage !== 'login.html' && currentPage !== 'signup.html'
-                ? '?redirectTo=' + encodeURIComponent(currentPage)
-                : '';
-            container.innerHTML = `
-                <a href="login.html${redirect}">Log in</a>
-                <a href="signup.html${redirect}">Sign up</a>
-            `;
+            ensureAccountMenuListeners();
+            wireAccountMenu(navAuth);
         }
-    });
+    }
+
+    if (footerAuth) {
+        footerAuth.innerHTML = session?.user
+            ? renderFooterAuthSignedIn()
+            : renderFooterAuthSignedOut();
+        wireLogoutButtons(footerAuth);
+    }
 }
 
 function escapeHtml(text) {
