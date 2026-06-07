@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Added
+- Multi-child summer plan (Option A): optional `child_name` on plan entries; filter chips on Summer Plan page; child picker in add-to-plan modal; color-coded calendar labels. Migration: `supabase/migrations/20260529120000_add_child_name.sql`.
 - Added `DESIGN_SYSTEM.md` — design tokens and UI patterns extracted from Stitch “Summer Camp Weekly Planner Dashboard” screens.
 - Added `camp-detail.html` camp details page (supports `?id=<airtable_record_id>`).
 - Added `js/camp-detail.js` to fetch and render parent-friendly camp details (age, cost, location, description, activities, after care, website).
@@ -17,6 +18,8 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Summer Plan page: two-column shell — full-height blue left nav column; title and content in main column; Calendar toggle first (default), List second.
+- Summer Plan page: Stitch Phase 1 Evolution styling — Plus Jakarta Sans, left child sidebar with icons, pill List/Calendar toggle, week cards with accent bar (no Add Child control).
 - Browse page: **Search and Filter** section title; subtle blue-tinted panel, primary border, shadow, and white inputs on the filter block.
 - Stitch design system Phase 1: `:root` tokens in `css/styles.css` (canvas `#f6f8f6`, `background-dark` / on-primary text, app primary `#2563eb`); homepage hero restyled to dark band (removed purple gradient).
 - Replaced remaining **CampFinder** product naming with **A2CampFinder** in About copy, `js/main.js` log, and setup/feature docs (`SETUP.md`, enrichment/sync/feedback plans).

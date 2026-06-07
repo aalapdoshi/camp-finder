@@ -839,9 +839,50 @@ body {
     font-size: 0.875rem;
 }
 
-/* Summer Plan page */
+/* Summer Plan page — Stitch Phase 1 Evolution tokens (scoped) */
 .summer-plan-page {
-    padding: 3rem 0;
+    --sp-surface: #f8f9ff;
+    --sp-on-surface: #0b1c30;
+    --sp-on-surface-variant: #434655;
+    --sp-outline-variant: #c3c6d7;
+    --sp-surface-container-low: #eff4ff;
+    --sp-surface-container-high: #dce9ff;
+    --sp-surface-lowest: #ffffff;
+    --sp-primary-container: #2563eb;
+    --sp-on-primary-container: #eeefff;
+    --sp-tertiary-fixed: #ffddb8;
+    --sp-on-tertiary-fixed-variant: #653e00;
+    --sp-secondary-container: #86f2e4;
+    --sp-on-secondary-container: #006f66;
+    --sp-column-top: 3rem;
+    padding: 0;
+    min-height: calc(100vh - 4.5rem);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--sp-surface);
+}
+
+.summer-plan-shell {
+    display: flex;
+    align-items: stretch;
+    min-height: inherit;
+}
+
+.summer-plan-main-column {
+    flex: 1;
+    min-width: 0;
+    background: var(--sp-surface);
+}
+
+.summer-plan-main-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--sp-column-top) 20px 3rem;
+}
+
+.summer-plan-page .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 .summer-plan-header {
@@ -849,14 +890,16 @@ body {
 }
 
 .summer-plan-header h1 {
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 800;
-    margin-bottom: 0.5rem;
-    color: var(--text-dark);
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem;
+    color: var(--sp-on-surface);
 }
 
 .summer-plan-header p {
-    color: var(--text-light);
+    color: var(--sp-on-surface-variant);
+    font-size: 1rem;
 }
 
 .summer-plan-empty {
@@ -877,25 +920,162 @@ body {
     margin-bottom: 1.5rem;
 }
 
-.summer-plan-view-tabs {
+.summer-plan-child-sidebar {
+    flex: 0 0 17rem;
     display: flex;
+    flex-direction: column;
+    padding: var(--sp-column-top) 0 1rem;
+    border-right: 1px solid var(--sp-outline-variant);
+    background: var(--sp-surface-container-low);
+}
+
+.summer-plan-sidebar-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0 1.25rem 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.summer-plan-sidebar-brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: var(--sp-primary-container);
+    color: var(--sp-on-primary-container);
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+}
+
+.summer-plan-sidebar-brand-icon .material-symbols-outlined {
+    font-size: 1.35rem;
+}
+
+.summer-plan-sidebar-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--sp-on-surface);
+    line-height: 1.25;
+    margin: 0;
+}
+
+.summer-plan-sidebar-subtitle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--sp-on-surface-variant);
+    margin: 0.15rem 0 0;
+}
+
+.summer-plan-child-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.summer-plan-child-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: auto;
+    margin: 0 0.75rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-align: left;
+    color: var(--sp-on-surface-variant);
+    transition: background 0.15s, color 0.15s;
+}
+
+.summer-plan-child-nav-item:hover {
+    background: var(--sp-surface-container-high);
+    color: var(--sp-on-surface);
+}
+
+.summer-plan-child-nav-item.active {
+    background: var(--sp-primary-container);
+    color: var(--sp-on-primary-container);
+    font-weight: 700;
+}
+
+.summer-plan-child-nav-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.summer-plan-child-nav-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.summer-plan-child-swatch {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.summer-plan-cell-child {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
+}
+
+.summer-plan-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.summer-plan-view-pill {
+    display: inline-flex;
+    gap: 0.15rem;
+    padding: 0.25rem;
+    background: var(--sp-surface-container-high);
+    border-radius: 999px;
 }
 
 .summer-plan-tab {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    background: white;
-    border-radius: 8px;
+    padding: 0.4rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
     cursor: pointer;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--sp-on-surface-variant);
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.summer-plan-tab:hover {
+    color: var(--sp-on-surface);
 }
 
 .summer-plan-tab.active {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
+    background: var(--sp-surface-lowest);
+    color: var(--sp-on-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.summer-plan-list-view {
+    background: var(--sp-surface-lowest);
+    border: 1px solid var(--sp-outline-variant);
+    border-radius: 1rem;
+    padding: 0.5rem;
+    overflow-x: auto;
 }
 
 .summer-plan-table {
@@ -934,6 +1114,174 @@ body {
     font-size: 0.875rem;
 }
 
+.summer-plan-edit-child {
+    min-width: 7rem;
+    max-width: 10rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.add-to-plan-child-new {
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.add-to-plan-field-hint {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.summer-plan-calendar-view {
+    margin-top: 0;
+}
+
+#summer-plan-calendar-weeks,
+.summer-plan-calendar-weeks {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.summer-plan-calendar-week {
+    display: flex;
+    flex-direction: column;
+}
+
+.summer-plan-calendar-week:not(:last-child) {
+    padding-bottom: 0.5rem;
+}
+
+.summer-plan-week-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.summer-plan-week-heading-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--sp-on-surface);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.summer-plan-week-heading-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--sp-outline-variant);
+}
+
+.summer-plan-week-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summer-plan-week-empty {
+    margin: 0;
+    padding: 1.25rem 1.5rem;
+    border: 1px dashed var(--sp-outline-variant);
+    border-radius: 1rem;
+    background: transparent;
+    color: var(--sp-on-surface-variant);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.summer-plan-week-card {
+    position: relative;
+    display: flex;
+    background: var(--sp-surface-lowest);
+    border: 1px solid var(--sp-outline-variant);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.summer-plan-week-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.summer-plan-week-card-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--week-card-accent, var(--primary-color));
+}
+
+.summer-plan-week-card-body {
+    flex: 1;
+    padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+    min-width: 0;
+}
+
+.summer-plan-week-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.summer-plan-week-card-child {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.summer-plan-week-card-status {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+}
+
+.summer-plan-week-card-status-booked {
+    background: var(--sp-secondary-container);
+    color: var(--sp-on-secondary-container);
+}
+
+.summer-plan-week-card-status-want {
+    background: var(--sp-tertiary-fixed);
+    color: var(--sp-on-tertiary-fixed-variant);
+}
+
+.summer-plan-week-card-camp {
+    margin: 0 0 0.25rem;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.summer-plan-week-card-camp-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--sp-on-surface);
+    text-decoration: none;
+}
+
+a.summer-plan-week-card-camp-name:hover {
+    color: var(--sp-primary-container);
+}
+
+.summer-plan-week-card-dates {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--sp-on-surface-variant);
+}
+
 .status-badge {
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
@@ -958,37 +1306,6 @@ body {
 
 .summer-plan-unavailable {
     color: var(--text-light);
-}
-
-.summer-plan-calendar-week {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: white;
-}
-
-.summer-plan-calendar-week-label {
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--text-dark);
-}
-
-.summer-plan-calendar-entry {
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-}
-
-.calendar-entry-booked {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.calendar-entry-want {
-    background: #fef3c7;
-    color: #92400e;
 }
 
 .browse-filters {
@@ -1283,6 +1600,40 @@ body {
     
     .camps-grid {
         grid-template-columns: 1fr;
+    }
+
+    .summer-plan-shell {
+        flex-direction: column;
+    }
+
+    .summer-plan-page {
+        --sp-column-top: 2rem;
+    }
+
+    .summer-plan-child-sidebar {
+        flex: none;
+        width: 100%;
+        padding: var(--sp-column-top) 0 1rem;
+        border-right: none;
+        border-bottom: 1px solid var(--sp-outline-variant);
+    }
+
+    .summer-plan-sidebar-brand {
+        padding: 0 1.25rem 1rem;
+    }
+
+    .summer-plan-child-filters {
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .summer-plan-child-nav-item {
+        border-radius: 0.5rem;
+        padding: 0.65rem 0.85rem;
+    }
+
+    .summer-plan-main-inner {
+        padding: var(--sp-column-top) 20px 2rem;
     }
     
     .section-header h2 {

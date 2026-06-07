@@ -1,23 +1,117 @@
 // summer-plan.js - Supabase CRUD for summer plan + shared add-to-plan modal
 // Requires: auth.js (initSupabase, getSession), Supabase client
 
+const MAX_CHILD_NAMES = 6;
+const SUMMER_PLAN_LAST_CHILD_KEY = 'summerPlanLastChildName';
+
+const CHILD_COLORS = [
+    '#2563eb',
+    '#10b981',
+    '#d97706',
+    '#7c3aed',
+    '#db2777',
+    '#0891b2'
+];
+
+function normalizeChildName(name) {
+    return (name || '').trim();
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 /**
- * Get all plan entries for the current user.
- * @returns {Promise<Array>} Array of { id, camp_id, start_date, end_date, status, notes, created_at }
+ * Deterministic color for a child name (calendar/list accents).
+ * @param {string|null} childName
+ * @returns {string} hex color
  */
-async function getPlanEntries() {
+function getChildColor(childName) {
+    const name = normalizeChildName(childName);
+    if (!name) return '#9ca3af';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return CHILD_COLORS[Math.abs(hash) % CHILD_COLORS.length];
+}
+
+/** Light fill for calendar entry backgrounds. */
+function getChildBackgroundColor(childName) {
+    const name = normalizeChildName(childName);
+    if (!name) return '#f3f4f6';
+    return `color-mix(in srgb, ${getChildColor(name)} 20%, white)`;
+}
+
+/** Left accent for booked vs want-to-book (camp/status). */
+function getStatusAccentColor(status) {
+    return status === 'booked' ? '#059669' : '#d97706';
+}
+
+/**
+ * Unique non-empty child names from plan rows.
+ * @param {Array<{ child_name?: string|null }>} entries
+ * @returns {string[]}
+ */
+function distinctChildNamesFromEntries(entries) {
+    const set = new Set();
+    for (const e of entries || []) {
+        const n = normalizeChildName(e.child_name);
+        if (n) set.add(n);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * @param {string} newName
+ * @param {string[]} existingNames - already normalized
+ * @returns {{ ok: boolean, error?: string, name?: string }}
+ */
+function validateChildNameForAdd(newName, existingNames) {
+    const name = normalizeChildName(newName);
+    if (!name) return { ok: true, name: null };
+    if (name.length > 80) {
+        return { ok: false, error: 'Child name must be 80 characters or fewer.' };
+    }
+    const exists = existingNames.some(n => n.toLowerCase() === name.toLowerCase());
+    if (!exists && existingNames.length >= MAX_CHILD_NAMES) {
+        return {
+            ok: false,
+            error: `You can use up to ${MAX_CHILD_NAMES} different child names on your plan.`
+        };
+    }
+    const canonical = existingNames.find(n => n.toLowerCase() === name.toLowerCase()) || name;
+    return { ok: true, name: canonical };
+}
+
+/**
+ * Get plan entries for the current user.
+ * @param {{ childName?: string }} [options] - omitted/'all' = all; 'unassigned' = null names; else exact name
+ */
+async function getPlanEntries(options = {}) {
     const session = await getSession();
     if (!session?.user?.id) return [];
 
     const client = initSupabase();
     if (!client) return [];
 
+    const filter = options.childName;
+
     try {
-        const { data, error } = await client
+        let query = client
             .from('summer_plan')
-            .select('id, camp_id, start_date, end_date, status, notes, created_at')
-            .eq('user_id', session.user.id)
-            .order('start_date', { ascending: true });
+            .select('id, camp_id, start_date, end_date, status, notes, child_name, created_at')
+            .eq('user_id', session.user.id);
+
+        if (filter === 'unassigned') {
+            query = query.is('child_name', null);
+        } else if (filter && filter !== 'all') {
+            query = query.eq('child_name', filter);
+        }
+
+        const { data, error } = await query.order('start_date', { ascending: true });
 
         if (error) {
             console.error('Error fetching summer plan:', error);
@@ -31,19 +125,34 @@ async function getPlanEntries() {
 }
 
 /**
- * Add a camp to the summer plan.
- * @param {string} campId - Airtable record ID
- * @param {string} startDate - YYYY-MM-DD
- * @param {string|null} endDate - YYYY-MM-DD or null for single day
- * @param {string} status - 'booked' or 'want_to_book'
- * @returns {Promise<boolean>} true if added
+ * Distinct child names on the user's plan (for dropdowns).
+ * @returns {Promise<string[]>}
  */
-async function addPlanEntry(campId, startDate, endDate, status) {
+async function getDistinctChildNames() {
+    const entries = await getPlanEntries();
+    return distinctChildNamesFromEntries(entries);
+}
+
+/**
+ * @param {string} campId
+ * @param {string} startDate
+ * @param {string|null} endDate
+ * @param {string} status
+ * @param {string|null} childName
+ */
+async function addPlanEntry(campId, startDate, endDate, status, childName = null) {
     const session = await getSession();
     if (!session?.user?.id) return false;
 
     const client = initSupabase();
     if (!client) return false;
+
+    const existing = await getDistinctChildNames();
+    const validated = validateChildNameForAdd(childName || '', existing);
+    if (!validated.ok) {
+        console.error('Invalid child name:', validated.error);
+        return false;
+    }
 
     try {
         const row = {
@@ -51,7 +160,8 @@ async function addPlanEntry(campId, startDate, endDate, status) {
             camp_id: campId,
             start_date: startDate,
             end_date: endDate || null,
-            status: status || 'want_to_book'
+            status: status || 'want_to_book',
+            child_name: validated.name
         };
 
         const { error } = await client.from('summer_plan').insert(row);
@@ -59,6 +169,12 @@ async function addPlanEntry(campId, startDate, endDate, status) {
         if (error) {
             console.error('Error adding plan entry:', error);
             return false;
+        }
+
+        if (validated.name) {
+            try {
+                sessionStorage.setItem(SUMMER_PLAN_LAST_CHILD_KEY, validated.name);
+            } catch (_) { /* ignore */ }
         }
         return true;
     } catch (err) {
@@ -68,10 +184,8 @@ async function addPlanEntry(campId, startDate, endDate, status) {
 }
 
 /**
- * Update a plan entry.
- * @param {string} id - Plan entry uuid
- * @param {object} updates - { start_date?, end_date?, status? }
- * @returns {Promise<boolean>}
+ * @param {string} id
+ * @param {object} updates - { start_date?, end_date?, status?, child_name? }
  */
 async function updatePlanEntry(id, updates) {
     const session = await getSession();
@@ -80,10 +194,18 @@ async function updatePlanEntry(id, updates) {
     const client = initSupabase();
     if (!client) return false;
 
+    const payload = { ...updates };
+    if (updates.child_name !== undefined) {
+        const existing = await getDistinctChildNames();
+        const validated = validateChildNameForAdd(updates.child_name, existing);
+        if (!validated.ok) return false;
+        payload.child_name = validated.name;
+    }
+
     try {
         const { error } = await client
             .from('summer_plan')
-            .update(updates)
+            .update(payload)
             .eq('id', id)
             .eq('user_id', session.user.id);
 
@@ -98,11 +220,6 @@ async function updatePlanEntry(id, updates) {
     }
 }
 
-/**
- * Remove a plan entry.
- * @param {string} id - Plan entry uuid
- * @returns {Promise<boolean>}
- */
 async function removePlanEntry(id) {
     const session = await getSession();
     if (!session?.user?.id) return false;
@@ -128,11 +245,6 @@ async function removePlanEntry(id) {
     }
 }
 
-/**
- * Format date as "Week of Jun 15" (start of week = Monday).
- * @param {string} dateStr - YYYY-MM-DD
- * @returns {string}
- */
 function formatWeekOf(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr + 'T12:00:00');
@@ -140,12 +252,6 @@ function formatWeekOf(dateStr) {
     return 'Week of ' + d.toLocaleDateString('en-US', options);
 }
 
-/**
- * Format date range for display (e.g. "Jun 15–21").
- * @param {string} startStr - YYYY-MM-DD
- * @param {string|null} endStr - YYYY-MM-DD or null
- * @returns {string}
- */
 function formatDateRange(startStr, endStr) {
     if (!startStr) return '';
     const start = new Date(startStr + 'T12:00:00');
@@ -157,10 +263,6 @@ function formatDateRange(startStr, endStr) {
     return start.toLocaleDateString('en-US', opt) + '–' + end.toLocaleDateString('en-US', opt);
 }
 
-/**
- * Get summer weeks for 2026 (June 1 – Aug 31). Each week starts Monday.
- * @returns {Array<{ label: string, startDate: string, endDate: string }>}
- */
 function getSummerWeeks2026() {
     const weeks = [];
     let d = new Date('2026-06-01');
@@ -182,9 +284,6 @@ function getSummerWeeks2026() {
     return weeks;
 }
 
-/**
- * Check if a date range overlaps with a week.
- */
 function dateRangeOverlapsWeek(entryStart, entryEnd, weekStart, weekEnd) {
     const es = entryStart || entryEnd;
     const ee = entryEnd || entryStart;
@@ -192,11 +291,11 @@ function dateRangeOverlapsWeek(entryStart, entryEnd, weekStart, weekEnd) {
 }
 
 /**
- * Open the add-to-plan modal for a camp.
- * @param {string} campId - Airtable record ID
- * @param {string} campName - For display in modal title
+ * @param {string} campId
+ * @param {string} campName
+ * @param {string|null} [preferredChildName]
  */
-async function openAddToPlanModal(campId, campName) {
+async function openAddToPlanModal(campId, campName, preferredChildName = null) {
     const session = await getSession();
     if (!session?.user?.id) {
         const currentPage = window.location.pathname.split('/').pop() || 'browse.html';
@@ -222,6 +321,7 @@ async function openAddToPlanModal(campId, campName) {
             <h2 id="add-to-plan-title" class="feedback-title">Add to Summer Plan</h2>
             <p class="add-to-plan-camp-name" id="add-to-plan-camp-name"></p>
             <form id="add-to-plan-form" class="add-to-plan-form">
+                <div id="add-to-plan-child-field" class="add-to-plan-field"></div>
                 <div class="add-to-plan-field">
                     <label for="add-to-plan-start">Start date *</label>
                     <input type="date" id="add-to-plan-start" required>
@@ -255,48 +355,18 @@ async function openAddToPlanModal(campId, campName) {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('active')) closeAddToPlanModal();
         });
-        modal.querySelector('#add-to-plan-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const startInput = document.getElementById('add-to-plan-start');
-            const endInput = document.getElementById('add-to-plan-end');
-            const statusInput = modal.querySelector('input[name="add-to-plan-status"]:checked');
-            const startDate = startInput?.value;
-            const endDate = endInput?.value || null;
-            const status = statusInput?.value || 'want_to_book';
-
-            if (!startDate) return;
-
-            if (endDate && endDate < startDate) {
-                const errEl = document.getElementById('add-to-plan-error');
-                if (errEl) {
-                    errEl.textContent = 'End date must be on or after start date.';
-                    errEl.style.display = 'block';
-                }
-                return;
-            }
-
-            const resolvedSession = await getSession();
-            if (!resolvedSession?.user?.id) return;
-
-            const campIdVal = modal.dataset.campId;
-            const ok = await addPlanEntry(campIdVal, startDate, endDate, status);
-            if (ok) {
-                closeAddToPlanModal();
-                if (typeof onPlanEntryAdded === 'function') onPlanEntryAdded();
-                if (window.location.pathname.includes('summer-plan')) {
-                    window.location.reload();
-                }
-            } else {
-                const errEl = document.getElementById('add-to-plan-error');
-                if (errEl) {
-                    errEl.textContent = 'Could not add. Please try again.';
-                    errEl.style.display = 'block';
-                }
-            }
-        });
+        modal.querySelector('#add-to-plan-form').addEventListener('submit', handleAddToPlanSubmit);
     }
 
     modal.dataset.campId = campId;
+    let lastChild = preferredChildName;
+    if (!lastChild) {
+        try {
+            lastChild = sessionStorage.getItem(SUMMER_PLAN_LAST_CHILD_KEY);
+        } catch (_) { /* ignore */ }
+    }
+    modal.dataset.preferredChildName = lastChild || '';
+
     const nameEl = document.getElementById('add-to-plan-camp-name');
     if (nameEl) nameEl.textContent = campName || 'Camp';
 
@@ -311,9 +381,129 @@ async function openAddToPlanModal(campId, campName) {
         errEl.style.display = 'none';
     }
 
+    await renderAddToPlanChildField(modal);
+
     document.body.style.overflow = 'hidden';
     backdrop.classList.add('active');
     modal.classList.add('active');
+}
+
+async function handleAddToPlanSubmit(e) {
+    e.preventDefault();
+    const modal = document.getElementById('add-to-plan-modal');
+    const startInput = document.getElementById('add-to-plan-start');
+    const endInput = document.getElementById('add-to-plan-end');
+    const statusInput = modal?.querySelector('input[name="add-to-plan-status"]:checked');
+    const startDate = startInput?.value;
+    const endDate = endInput?.value || null;
+    const status = statusInput?.value || 'want_to_book';
+
+    if (!startDate) return;
+
+    if (endDate && endDate < startDate) {
+        showAddToPlanError('End date must be on or after start date.');
+        return;
+    }
+
+    const resolvedSession = await getSession();
+    if (!resolvedSession?.user?.id) return;
+
+    const childResult = await resolveAddToPlanChildName();
+    if (!childResult.ok) {
+        showAddToPlanError(childResult.error || 'Please enter a valid child name.');
+        return;
+    }
+
+    const campIdVal = modal?.dataset.campId;
+    const ok = await addPlanEntry(campIdVal, startDate, endDate, status, childResult.childName);
+    if (ok) {
+        closeAddToPlanModal();
+        if (typeof onPlanEntryAdded === 'function') onPlanEntryAdded();
+        if (window.location.pathname.includes('summer-plan')) {
+            window.location.reload();
+        }
+    } else {
+        showAddToPlanError('Could not add. Please try again.');
+    }
+}
+
+function showAddToPlanError(message) {
+    const errEl = document.getElementById('add-to-plan-error');
+    if (errEl) {
+        errEl.textContent = message;
+        errEl.style.display = 'block';
+    }
+}
+
+async function renderAddToPlanChildField(modal) {
+    const container = document.getElementById('add-to-plan-child-field');
+    if (!container) return;
+
+    const names = await getDistinctChildNames();
+    const preferred = modal?.dataset.preferredChildName || '';
+    const preferredInList = names.some(n => n.toLowerCase() === preferred.toLowerCase());
+
+    const nameOptions = names
+        .map(n => {
+            const sel = preferredInList && n.toLowerCase() === preferred.toLowerCase() ? ' selected' : '';
+            return `<option value="${escapeHtml(n)}"${sel}>${escapeHtml(n)}</option>`;
+        })
+        .join('');
+
+    const defaultPick = !preferredInList && preferred ? '__new__' : (names.length === 1 && !preferred ? names[0] : '');
+
+    container.innerHTML = `
+        <label for="add-to-plan-child-select">Child</label>
+        <select id="add-to-plan-child-select">
+            <option value="">Unassigned</option>
+            ${nameOptions}
+            <option value="__new__"${defaultPick === '__new__' ? ' selected' : ''}>Add new name…</option>
+        </select>
+        <input type="text" id="add-to-plan-child-new" maxlength="80" placeholder="e.g. Emma" class="add-to-plan-child-new" style="display:none;">
+        <p class="add-to-plan-field-hint">Up to ${MAX_CHILD_NAMES} different names on your plan.</p>
+    `;
+
+    const select = document.getElementById('add-to-plan-child-select');
+    const newInput = document.getElementById('add-to-plan-child-new');
+
+    if (select && defaultPick && defaultPick !== '__new__') {
+        select.value = defaultPick;
+    }
+
+    if (select && newInput) {
+        const toggleNew = () => {
+            const isNew = select.value === '__new__';
+            newInput.style.display = isNew ? 'block' : 'none';
+            newInput.required = isNew;
+            if (isNew) {
+                newInput.value = preferredInList ? '' : (preferred || '');
+                newInput.focus();
+            }
+        };
+        select.addEventListener('change', toggleNew);
+        toggleNew();
+    }
+}
+
+async function resolveAddToPlanChildName() {
+    const select = document.getElementById('add-to-plan-child-select');
+    const newInput = document.getElementById('add-to-plan-child-new');
+    if (!select) return { ok: true, childName: null };
+
+    if (select.value === '') {
+        return { ok: true, childName: null };
+    }
+
+    if (select.value === '__new__') {
+        if (!normalizeChildName(newInput?.value)) {
+            return { ok: false, error: 'Please enter a name for the new child.' };
+        }
+        const existing = await getDistinctChildNames();
+        const validated = validateChildNameForAdd(newInput?.value, existing);
+        return { ok: validated.ok, error: validated.error, childName: validated.name ?? null };
+    }
+
+    return { ok: true, childName: select.value };
 }
 
 function closeAddToPlanModal() {

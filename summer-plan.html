@@ -13,6 +13,10 @@
     </script>
     <title>Summer Plan - A2CampFinder</title>
     <meta name="description" content="Your summer camp plan for 2026.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -38,57 +42,77 @@
     </nav>
 
     <main class="summer-plan-page">
-        <div class="container">
-            <header class="summer-plan-header">
-                <h1>Summer Plan 2026</h1>
-                <p>Your camps for the summer.</p>
-            </header>
-
-            <section class="summer-plan-content">
-                <div id="summer-plan-login-prompt" class="summer-plan-empty" style="display:none;">
-                    <h2>Log in to view your summer plan</h2>
-                    <p>Sign in to add and view camps in your summer plan.</p>
-                    <a href="login.html?redirectTo=summer-plan.html" class="btn-primary">Log in</a>
-                </div>
-
-                <div id="summer-plan-empty-state" class="summer-plan-empty" style="display:none;">
-                    <h2>Select a camp and add it to the summer to get started.</h2>
-                    <p>Browse camps and add them to your plan with dates.</p>
-                    <a href="browse.html" class="btn-primary">Browse Camps</a>
-                </div>
-
-                <div id="summer-plan-content-wrap" style="display:none;">
-                    <div class="summer-plan-view-tabs">
-                        <button type="button" class="summer-plan-tab active" data-view="list">List</button>
-                        <button type="button" class="summer-plan-tab" data-view="calendar">Calendar</button>
+        <div class="summer-plan-shell">
+            <aside id="summer-plan-sidebar" class="summer-plan-child-sidebar" style="display:none" aria-label="Filter by child">
+                <div class="summer-plan-sidebar-brand">
+                    <div class="summer-plan-sidebar-brand-icon" aria-hidden="true">
+                        <span class="material-symbols-outlined">family_restroom</span>
                     </div>
-
-                    <div id="summer-plan-list-view" class="summer-plan-list-view">
-                        <table class="summer-plan-table" id="summer-plan-table">
-                            <thead>
-                                <tr>
-                                    <th>Camp</th>
-                                    <th>Dates</th>
-                                    <th>Week</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="summer-plan-list-body">
-                            </tbody>
-                        </table>
+                    <div>
+                        <h2 class="summer-plan-sidebar-title">Summer 2026</h2>
+                        <p class="summer-plan-sidebar-subtitle">Planning Dashboard</p>
                     </div>
+                </div>
+                <nav id="summer-plan-child-filters" class="summer-plan-child-filters"></nav>
+            </aside>
 
-                    <div id="summer-plan-calendar-view" class="summer-plan-calendar-view" style="display:none;">
-                        <div id="summer-plan-calendar-weeks">
+            <div class="summer-plan-main-column">
+                <div class="summer-plan-main-inner">
+                    <header class="summer-plan-header">
+                        <h1>Summer Camp Planner</h1>
+                        <p>Visualize and coordinate your family's summer camps.</p>
+                    </header>
+
+                    <section class="summer-plan-content">
+                        <div id="summer-plan-login-prompt" class="summer-plan-empty" style="display:none;">
+                            <h2>Log in to view your summer plan</h2>
+                            <p>Sign in to add and view camps in your summer plan.</p>
+                            <a href="login.html?redirectTo=summer-plan.html" class="btn-primary">Log in</a>
                         </div>
-                    </div>
-                </div>
 
-                <div id="summer-plan-loading" class="loading">
-                    Loading your summer plan...
+                        <div id="summer-plan-empty-state" class="summer-plan-empty" style="display:none;">
+                            <h2>Select a camp and add it to the summer to get started.</h2>
+                            <p>Browse camps and add them to your plan with dates.</p>
+                            <a href="browse.html" class="btn-primary">Browse Camps</a>
+                        </div>
+
+                        <div id="summer-plan-content-wrap" style="display:none;">
+                            <div class="summer-plan-toolbar">
+                                <div class="summer-plan-view-pill" role="group" aria-label="Plan view">
+                                    <button type="button" class="summer-plan-tab active" data-view="calendar">Calendar</button>
+                                    <button type="button" class="summer-plan-tab" data-view="list">List</button>
+                                </div>
+                            </div>
+
+                            <div id="summer-plan-list-view" class="summer-plan-list-view" style="display:none;">
+                                <table class="summer-plan-table" id="summer-plan-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Camp</th>
+                                            <th>Child</th>
+                                            <th>Dates</th>
+                                            <th>Week</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="summer-plan-list-body">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div id="summer-plan-calendar-view" class="summer-plan-calendar-view">
+                                <div id="summer-plan-calendar-weeks" class="summer-plan-calendar-weeks">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="summer-plan-loading" class="loading">
+                            Loading your summer plan...
+                        </div>
+                    </section>
                 </div>
-            </section>
+            </div>
         </div>
     </main>
 

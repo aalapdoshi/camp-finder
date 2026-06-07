@@ -119,6 +119,15 @@ create policy "Users can manage own summer plan"
   with check (auth.uid() = user_id);
 ```
 
+### Multi-child labels (Option A)
+
+```sql
+alter table public.summer_plan
+  add column if not exists child_name text;
+```
+
+See `supabase/migrations/20260529120000_add_child_name.sql` and `MULTI_KID_SUMMER_PLAN_PLAN.md`.
+
 ## File Summary
 
 | File | Action |
