@@ -293,12 +293,47 @@ async function loadCategories() {
  * @param {object} [options] - Optional settings
  * @param {boolean} [options.isSaved] - Whether camp is in user's favorites
  * @param {function} [options.onRemove] - Called when user removes from favorites (receives card element)
+ * @param {string} [options.variant] - 'default' | 'rich' (Stitch-style rich card)
  */
+function formatCampCostDisplay(fields) {
+    if (fields['Cost Display'] && fields['Cost Display'].toString().trim()) {
+        return fields['Cost Display'].toString().trim();
+    }
+    if (fields['Cost Per Week'] != null) {
+        return `$${fields['Cost Per Week']} / week`;
+    }
+    return '';
+}
+
+function formatCampAges(fields) {
+    if (fields['Age Min'] != null && fields['Age Max'] != null) {
+        return `Ages ${fields['Age Min']}\u2013${fields['Age Max']}`;
+    }
+    return '';
+}
+
+function getRegistrationBadgeHtml(registrationStatus, rich = false) {
+    let statusBadgeClass = '';
+    if (registrationStatus === 'Open Now') {
+        statusBadgeClass = 'badge-status-open';
+    } else if (registrationStatus === 'Coming Soon') {
+        statusBadgeClass = 'badge-status-coming-soon';
+    } else if (registrationStatus === 'Not Updated') {
+        statusBadgeClass = 'badge-status-not-updated';
+    }
+    const pillClass = rich ? ' camp-status-pill' : '';
+    return registrationStatus
+        ? `<span class="badge${pillClass} ${statusBadgeClass}">${registrationStatus}</span>`
+        : '';
+}
+
 function createCampCard(camp, options = {}) {
-    const { isSaved = false, onRemove } = options;
+    const { isSaved = false, onRemove, variant = 'default' } = options;
+    const isRich = variant === 'rich';
     const fields = camp.fields;
     const card = document.createElement('div');
-    card.className = 'camp-card';
+    card.className = isRich ? 'camp-card camp-card-rich' : 'camp-card';
+    const campNameAttr = (fields['Camp Name'] || '').replace(/"/g, '&quot;');
 
     // Get description text safely
     let descriptionText = '';
@@ -308,76 +343,91 @@ function createCampCard(camp, options = {}) {
       const desc = fields['Description'].toString().trim();
       descriptionText = desc.length > 120 ? desc.substring(0, 120) + '...' : desc;
     }
-    
-    // Compute registration status and format date
+
     const registrationStatus = computeRegistrationStatus(fields);
     const registrationDate = formatRegistrationDate(fields['Registration Opens Date'], fields['Registration Opens Time']);
-    
-    // Get badge class based on status
-    let statusBadgeClass = '';
-    if (registrationStatus === 'Open Now') {
-        statusBadgeClass = 'badge-status-open';
-    } else if (registrationStatus === 'Coming Soon') {
-        statusBadgeClass = 'badge-status-coming-soon';
-    } else if (registrationStatus === 'Not Updated') {
-        statusBadgeClass = 'badge-status-not-updated';
-    }
-    
-    // Build registration status badge HTML
-    const registrationBadgeHtml = registrationStatus ? 
-        `<span class="badge ${statusBadgeClass}">${registrationStatus}</span>` : '';
+    const registrationBadgeHtml = getRegistrationBadgeHtml(registrationStatus, isRich);
 
     const heartClass = isSaved ? 'heart-icon heart-filled' : 'heart-icon heart-outline';
     const heartAria = isSaved ? 'Remove from favorites' : 'Add to favorites';
     const heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
 
-    const addToPlanHtml = `<button type="button" class="add-to-plan-btn" aria-label="Add to Summer Plan" data-camp-id="${camp.id}" data-camp-name="${(fields['Camp Name'] || '').replace(/"/g, '&quot;')}">📅</button>`;
+    if (isRich) {
+        const agesText = formatCampAges(fields);
+        const costText = formatCampCostDisplay(fields);
+        const cityText = fields['City'] ? String(fields['City']) : '';
 
-    card.innerHTML = `
-        <div class="camp-card-header">
-            <div>
-                <span class="camp-category">${fields['Primary Category'] || 'General'}</span>
-                ${registrationBadgeHtml}
+        const factsHtml = [
+            agesText ? `<div class="camp-fact"><span class="material-symbols-outlined camp-fact-icon" aria-hidden="true">groups</span><span>${agesText}</span></div>` : '',
+            costText ? `<div class="camp-fact"><span class="material-symbols-outlined camp-fact-icon" aria-hidden="true">payments</span><span>${costText}</span></div>` : '',
+            cityText ? `<div class="camp-fact"><span class="material-symbols-outlined camp-fact-icon" aria-hidden="true">location_on</span><span>${cityText}</span></div>` : ''
+        ].filter(Boolean).join('');
+
+        card.innerHTML = `
+            <div class="camp-card-header">
+                <div class="camp-card-badges">
+                    <span class="camp-category camp-category-pill">${fields['Primary Category'] || 'General'}</span>
+                    ${registrationBadgeHtml}
+                </div>
+                <button type="button" class="${heartClass} camp-card-heart-btn" aria-label="${heartAria}" data-camp-id="${camp.id}" data-is-saved="${isSaved}">${heartSvg}</button>
             </div>
-            <div class="camp-card-actions">
-                ${addToPlanHtml}
-                <button type="button" class="${heartClass}" aria-label="${heartAria}" data-camp-id="${camp.id}" data-is-saved="${isSaved}">${heartSvg}</button>
+            <h3 class="camp-name">${fields['Camp Name']}</h3>
+            ${factsHtml ? `<div class="camp-facts">${factsHtml}</div>` : ''}
+            ${fields['Has After Care'] ? '<div class="camp-after-care-badge">After care available</div>' : ''}
+            <div class="camp-card-footer">
+                <button type="button" class="camp-card-btn-primary add-to-plan-btn" data-camp-id="${camp.id}" data-camp-name="${campNameAttr}">Add to Plan</button>
+                <a href="camp-detail.html?id=${camp.id}" class="camp-card-btn-secondary">Details</a>
             </div>
-        </div>
-        <h3 class="camp-name">${fields['Camp Name']}</h3>
-        ${descriptionText ? `<p class="camp-short-desc">${descriptionText}</p>` : ''}
-        
-        <div class="camp-details">
-            ${(fields['Age Min'] != null && fields['Age Max'] != null) ? `
-            <div class="camp-detail-item">
-                <span class="detail-label">Ages:</span>
-                <span class="detail-value">${fields['Age Min']}-${fields['Age Max']}</span>
+        `;
+    } else {
+        const addToPlanHtml = `<button type="button" class="add-to-plan-btn" aria-label="Add to Summer Plan" data-camp-id="${camp.id}" data-camp-name="${campNameAttr}">📅</button>`;
+
+        card.innerHTML = `
+            <div class="camp-card-header">
+                <div>
+                    <span class="camp-category">${fields['Primary Category'] || 'General'}</span>
+                    ${registrationBadgeHtml}
+                </div>
+                <div class="camp-card-actions">
+                    ${addToPlanHtml}
+                    <button type="button" class="${heartClass}" aria-label="${heartAria}" data-camp-id="${camp.id}" data-is-saved="${isSaved}">${heartSvg}</button>
+                </div>
             </div>
-            ` : ''}
-            ${((fields['Cost Display'] && fields['Cost Display'].toString().trim()) || fields['Cost Per Week'] != null) ? `
-            <div class="camp-detail-item">
-                <span class="detail-label">Cost:</span>
-                <span class="detail-value">${(fields['Cost Display'] && fields['Cost Display'].toString().trim()) || (fields['Cost Per Week'] != null ? '$' + fields['Cost Per Week'] : '')}</span>
+            <h3 class="camp-name">${fields['Camp Name']}</h3>
+            ${descriptionText ? `<p class="camp-short-desc">${descriptionText}</p>` : ''}
+
+            <div class="camp-details">
+                ${(fields['Age Min'] != null && fields['Age Max'] != null) ? `
+                <div class="camp-detail-item">
+                    <span class="detail-label">Ages:</span>
+                    <span class="detail-value">${fields['Age Min']}-${fields['Age Max']}</span>
+                </div>
+                ` : ''}
+                ${((fields['Cost Display'] && fields['Cost Display'].toString().trim()) || fields['Cost Per Week'] != null) ? `
+                <div class="camp-detail-item">
+                    <span class="detail-label">Cost:</span>
+                    <span class="detail-value">${(fields['Cost Display'] && fields['Cost Display'].toString().trim()) || (fields['Cost Per Week'] != null ? '$' + fields['Cost Per Week'] : '')}</span>
+                </div>
+                ` : ''}
+                ${fields['City'] ? `
+                <div class="camp-detail-item">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">${fields['City']}</span>
+                </div>
+                ` : ''}
+                ${registrationDate ? `
+                <div class="camp-detail-item">
+                    <span class="detail-label">Registration:</span>
+                    <span class="detail-value">${registrationDate}</span>
+                </div>
+                ` : ''}
             </div>
-            ` : ''}
-            ${fields['City'] ? `
-            <div class="camp-detail-item">
-                <span class="detail-label">Location:</span>
-                <span class="detail-value">${fields['City']}</span>
-            </div>
-            ` : ''}
-            ${registrationDate ? `
-            <div class="camp-detail-item">
-                <span class="detail-label">Registration:</span>
-                <span class="detail-value">${registrationDate}</span>
-            </div>
-            ` : ''}
-        </div>
-        
-        ${fields['Has After Care'] ? '<div class="badge">✓ After Care Available</div>' : ''}
-        
-        <a href="camp-detail.html?id=${camp.id}" class="btn-view-details">View Details</a>
-    `;
+
+            ${fields['Has After Care'] ? '<div class="badge">✓ After Care Available</div>' : ''}
+
+            <a href="camp-detail.html?id=${camp.id}" class="btn-view-details">View Details</a>
+        `;
+    }
 
     // Wire Add to plan click
     const addToPlanBtn = card.querySelector('.add-to-plan-btn');

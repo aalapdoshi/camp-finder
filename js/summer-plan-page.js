@@ -89,6 +89,7 @@ function refreshViews() {
     const filtered = filterEntries(allEntries, activeChildFilter);
     renderList(filtered, cachedCampById, knownChildNames);
     renderCalendar(filtered, cachedCampById);
+    wireRemoveButtons();
 }
 
 const CHILD_NAV_ICONS = ['child_care', 'child_friendly', 'face', 'boy', 'girl'];
@@ -233,7 +234,6 @@ function renderList(entries, campById, childNames) {
     }
 
     wireInlineEdit(childNames);
-    wireRemoveButtons();
 }
 
 function wireInlineEdit(childNames) {
@@ -342,12 +342,13 @@ function renderCalendarWeekCard(entry, campById) {
         ? `<span class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</span>`
         : `<a href="camp-detail.html?id=${entry.camp_id}" class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</a>`;
 
-    return `<article class="summer-plan-week-card" style="--week-card-accent:${accent}">
+    return `<article class="summer-plan-week-card" style="--week-card-accent:${accent}" data-entry-id="${entry.id}">
         <div class="summer-plan-week-card-accent" aria-hidden="true"></div>
         <div class="summer-plan-week-card-body">
             <div class="summer-plan-week-card-meta">
                 <span class="summer-plan-week-card-child" style="color:${childColor}">${childLabel}</span>
                 <span class="summer-plan-week-card-status ${statusTagClass}">${statusLabel}</span>
+                <button type="button" class="summer-plan-week-card-remove btn-remove-plan" data-entry-id="${entry.id}">Remove</button>
             </div>
             <h4 class="summer-plan-week-card-camp">${campLink}</h4>
             <p class="summer-plan-week-card-dates">${escapeHtml(datesLabel)}</p>

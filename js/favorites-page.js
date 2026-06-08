@@ -42,7 +42,8 @@ async function initFavoritesPage() {
             if (camp) {
                 const card = createCampCard(camp, {
                     isSaved: true,
-                    onRemove: removeCardAndMaybeShowEmpty
+                    onRemove: removeCardAndMaybeShowEmpty,
+                    variant: 'rich'
                 });
                 resultsContainer.appendChild(card);
             } else {
@@ -74,12 +75,12 @@ async function initFavoritesPage() {
  */
 function createUnavailableFavoriteCard(campId) {
     const card = document.createElement('div');
-    card.className = 'camp-card camp-card-unavailable';
+    card.className = 'camp-card camp-card-rich camp-card-unavailable';
     card.innerHTML = `
         <div class="camp-card-unavailable-content">
             <h3 class="camp-name">Camp no longer available</h3>
-            <p>This camp has been removed from our listings.</p>
-            <button type="button" class="btn-remove-unavailable btn-secondary" data-camp-id="${campId}">
+            <p class="camp-unavailable-message">This camp has been removed from our listings.</p>
+            <button type="button" class="btn-remove-unavailable camp-card-btn-secondary" data-camp-id="${campId}">
                 Remove from favorites
             </button>
         </div>

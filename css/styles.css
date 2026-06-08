@@ -536,6 +536,177 @@ body {
     background: var(--primary-dark);
 }
 
+/* Rich camp card (Favorites — Stitch-inspired, no image) */
+.camp-card-rich {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.camp-card-rich:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.camp-card-rich .camp-card-header {
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.camp-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.camp-category-pill {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+    background: var(--primary-color);
+    color: white;
+}
+
+.camp-status-pill {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+}
+
+.camp-card-rich .camp-card-heart-btn {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: white;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+}
+
+.camp-card-rich .camp-card-heart-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.camp-card-rich .camp-name {
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.camp-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.camp-fact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.camp-fact-icon {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.camp-after-care-badge {
+    display: inline-block;
+    align-self: flex-start;
+    margin-bottom: 1rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.camp-card-footer {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.camp-card-btn-primary {
+    flex: 1.6;
+    padding: 0.65rem 1rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.camp-card-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.camp-card-btn-secondary {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: white;
+    color: var(--text-dark);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.camp-card-btn-secondary:hover {
+    border-color: #cbd5e1;
+    color: var(--primary-color);
+}
+
+.camp-card-unavailable.camp-card-rich {
+    border-style: dashed;
+    background: white;
+}
+
+.camp-unavailable-message {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.camp-card-unavailable .btn-remove-unavailable {
+    width: 100%;
+    cursor: pointer;
+}
+
 /* Categories Grid */
 .categories-grid {
     display: grid;
@@ -740,6 +911,13 @@ body {
 /* Browse Page */
 .browse-page {
     padding: 3rem 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.browse-page .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 .browse-header {
@@ -747,19 +925,28 @@ body {
 }
 
 .browse-header h1 {
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 800;
+    letter-spacing: -0.02em;
     margin-bottom: 0.5rem;
     color: var(--text-dark);
 }
 
 .browse-header p {
     color: var(--text-light);
+    font-size: 1rem;
 }
 
 /* Favorites page */
 .favorites-page {
     padding: 3rem 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.favorites-page .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 .favorites-header {
@@ -767,14 +954,16 @@ body {
 }
 
 .favorites-header h1 {
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 800;
+    letter-spacing: -0.02em;
     margin-bottom: 0.5rem;
     color: var(--text-dark);
 }
 
 .favorites-header p {
     color: var(--text-light);
+    font-size: 1rem;
 }
 
 .favorites-empty {
@@ -1241,6 +1430,27 @@ body {
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.35rem;
+}
+
+.summer-plan-week-card-remove {
+    margin-left: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sp-on-surface-variant);
+    cursor: pointer;
+    text-decoration: none;
+    opacity: 0.75;
+    transition: opacity 0.15s, color 0.15s, text-decoration-color 0.15s;
+}
+
+.summer-plan-week-card-remove:hover {
+    opacity: 1;
+    color: var(--sp-on-surface);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 .summer-plan-week-card-child {

@@ -18,6 +18,7 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Browse and Favorites pages: Stitch-style rich camp cards — icon rows for ages/cost/location, pill badges, circular heart button, **Add to Plan** + **Details** footer actions (no image).
 - Nav auth: signed-in users see a **My Account** pill dropdown (avatar initial, email, Log out); footer auth simplified to Log in or Log out only.
 - Summer Plan page: two-column shell — full-height blue left nav column; title and content in main column; Calendar toggle first (default), List second.
 - Summer Plan page: Stitch Phase 1 Evolution styling — Plus Jakarta Sans, left child sidebar with icons, pill List/Calendar toggle, week cards with accent bar (no Add Child control).

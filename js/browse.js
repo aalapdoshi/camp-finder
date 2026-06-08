@@ -218,7 +218,7 @@ function applyBrowseFiltersAndRender() {
 
     filtered.forEach(camp => {
         const isSaved = browseSavedCampIds.has(camp.id);
-        const card = createCampCard(camp, { isSaved });
+        const card = createCampCard(camp, { isSaved, variant: 'rich' });
         resultsContainer.appendChild(card);
     });
 }
