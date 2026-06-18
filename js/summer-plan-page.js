@@ -122,7 +122,7 @@ function renderChildFilters(entries) {
     for (const item of items) {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'summer-plan-child-nav-item';
+        btn.className = 'app-sidebar-nav-item summer-plan-child-nav-item';
         const isActive =
             item.value === activeChildFilter ||
             (item.value !== 'all' &&

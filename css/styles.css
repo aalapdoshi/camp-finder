@@ -16,8 +16,16 @@
     --secondary-color: #10b981;
     --text-dark: #1f2937;
     --text-light: #6b7280;
-    --bg-light: #f6f8f6;
+    --bg-light: #f8f9ff;
     --border-color: #e5e7eb;
+    --card-border: rgb(210, 214, 228);
+    /* Reusable left navigation column (Summer Plan and future pages) */
+    --sidebar-bg: rgb(239, 244, 255);
+    --sidebar-border: var(--card-border);
+    --sidebar-item-hover: #dce9ff;
+    --sidebar-item-active-bg: var(--primary-color);
+    --sidebar-item-active-text: #ffffff;
+    --sidebar-surface-muted: #dce9ff;
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
@@ -35,6 +43,43 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+}
+
+/* Reusable left sidebar shell — pair with page-specific nav markup */
+.app-sidebar {
+    background: var(--sidebar-bg);
+    border: none;
+    border-right: 1px solid var(--sidebar-border);
+}
+
+.app-sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: auto;
+    margin: 0 0.75rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-align: left;
+    color: var(--text-light);
+    transition: background 0.15s, color 0.15s;
+}
+
+.app-sidebar-nav-item:hover {
+    background: var(--sidebar-item-hover);
+    color: var(--text-dark);
+}
+
+.app-sidebar-nav-item.active {
+    background: var(--sidebar-item-active-bg);
+    color: var(--sidebar-item-active-text);
+    font-weight: 700;
 }
 
 /* Navigation */
@@ -543,7 +588,7 @@ body {
     background: white;
     border-radius: 1rem;
     padding: 1.25rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     box-shadow: var(--shadow-sm);
 }
 
@@ -1040,12 +1085,12 @@ body {
 
 /* Summer Plan page — Stitch Phase 1 Evolution tokens (scoped) */
 .summer-plan-page {
-    --sp-surface: #f8f9ff;
+    --sp-surface: var(--bg-light);
     --sp-on-surface: #0b1c30;
     --sp-on-surface-variant: #434655;
-    --sp-outline-variant: #c3c6d7;
-    --sp-surface-container-low: #eff4ff;
-    --sp-surface-container-high: #dce9ff;
+    --sp-outline-variant: var(--border-color);
+    --sp-surface-container-low: var(--sidebar-bg);
+    --sp-surface-container-high: var(--sidebar-item-hover);
     --sp-surface-lowest: #ffffff;
     --sp-primary-container: #2563eb;
     --sp-on-primary-container: #eeefff;
@@ -1124,8 +1169,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: var(--sp-column-top) 0 1rem;
-    border-right: 1px solid var(--sp-outline-variant);
-    background: var(--sp-surface-container-low);
+    background: var(--sidebar-bg);
 }
 
 .summer-plan-sidebar-brand {
@@ -1193,13 +1237,13 @@ body {
 }
 
 .summer-plan-child-nav-item:hover {
-    background: var(--sp-surface-container-high);
+    background: var(--sidebar-item-hover);
     color: var(--sp-on-surface);
 }
 
 .summer-plan-child-nav-item.active {
-    background: var(--sp-primary-container);
-    color: var(--sp-on-primary-container);
+    background: var(--sidebar-item-active-bg);
+    color: var(--sidebar-item-active-text);
     font-weight: 700;
 }
 
@@ -1242,7 +1286,7 @@ body {
     display: inline-flex;
     gap: 0.15rem;
     padding: 0.25rem;
-    background: var(--sp-surface-container-high);
+    background: var(--sidebar-surface-muted);
     border-radius: 999px;
 }
 
@@ -1387,7 +1431,7 @@ body {
 .summer-plan-week-empty {
     margin: 0;
     padding: 1.25rem 1.5rem;
-    border: 1px dashed var(--sp-outline-variant);
+    border: 1px dashed var(--card-border);
     border-radius: 1rem;
     background: transparent;
     color: var(--sp-on-surface-variant);
@@ -1399,7 +1443,7 @@ body {
     position: relative;
     display: flex;
     background: var(--sp-surface-lowest);
-    border: 1px solid var(--sp-outline-variant);
+    border: 1px solid var(--card-border);
     border-radius: 1rem;
     overflow: hidden;
     transition: box-shadow 0.2s;
@@ -1842,7 +1886,12 @@ a.summer-plan-week-card-camp-name:hover {
         width: 100%;
         padding: var(--sp-column-top) 0 1rem;
         border-right: none;
-        border-bottom: 1px solid var(--sp-outline-variant);
+        border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .summer-plan-page .app-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--sidebar-border);
     }
 
     .summer-plan-sidebar-brand {

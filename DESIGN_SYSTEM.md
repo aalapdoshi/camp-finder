@@ -71,7 +71,8 @@ Extracted from Stitch project **Summer Camp Weekly Planner Dashboard** (`project
 
 - **Shell:** `min-h-screen` column; optional `lg:flex-row` for sidebar + main  
 - **Header:** `border-b border-primary/10`, `bg-white` / `dark:bg-background-dark`, `px-6 py-3` → `lg:px-10`  
-- **Sidebar:** `lg:w-72`, `border-r border-primary/10`, `p-6`, vertical `gap-8`  
+- **Sidebar:** `lg:w-72`, `border-r` using `--sidebar-border`, `background: --sidebar-bg`, vertical `gap-8`  
+- **Sidebar / card borders (`:root`):** `--sidebar-bg` `rgb(239, 244, 255)`, `--card-border` `rgb(210, 214, 228)` (sidebar divider + camp/week cards), `--sidebar-item-hover` `#dce9ff`, page canvas `--bg-light` `#f8f9ff`
 - **Main:** `flex-1`, `p-6 lg:p-10`, `max-w-6xl mx-auto`, vertical `gap-8`  
 - **Grids:** week cards `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`; stats `md:grid-cols-3`
 
