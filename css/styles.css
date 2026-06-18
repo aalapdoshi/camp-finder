@@ -30,6 +30,7 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
     --border-radius: 12px;
+    --page-column-top: 3rem;
 }
 
 body {
@@ -955,14 +956,88 @@ body {
 
 /* Browse Page */
 .browse-page {
-    padding: 3rem 0;
+    --browse-column-top: var(--page-column-top);
+    padding: 0;
+    min-height: calc(100vh - 4.5rem);
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-light);
 }
 
 .browse-page .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     vertical-align: middle;
     line-height: 1;
+}
+
+.browse-shell {
+    display: flex;
+    align-items: stretch;
+    min-height: inherit;
+}
+
+.browse-filters-sidebar {
+    flex: 0 0 18rem;
+    display: flex;
+    flex-direction: column;
+    padding: var(--browse-column-top) 0 1.5rem;
+}
+
+.browse-sidebar-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0 1.25rem 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.browse-sidebar-brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+}
+
+.browse-sidebar-brand-icon .material-symbols-outlined {
+    font-size: 1.35rem;
+}
+
+.browse-sidebar-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1.25;
+    margin: 0;
+}
+
+.browse-sidebar-subtitle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-light);
+    margin: 0.15rem 0 0;
+}
+
+.browse-filters-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.25rem;
+}
+
+.browse-main-column {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg-light);
+}
+
+.browse-main-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--browse-column-top) 20px 3rem;
 }
 
 .browse-header {
@@ -973,13 +1048,92 @@ body {
     font-size: 2rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.5rem;
     color: var(--text-dark);
 }
 
 .browse-header p {
     color: var(--text-light);
     font-size: 1rem;
+}
+
+.browse-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.browse-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: 100%;
+    min-width: 0;
+}
+
+.browse-filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-dark);
+}
+
+.browse-filter-group input[type="number"],
+.browse-filter-group select,
+.browse-filter-group .search-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    background: white;
+}
+
+.browse-filter-aftercare label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.browse-filters-footer {
+    margin-top: 0.25rem;
+}
+
+.browse-clear-link {
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.browse-clear-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.browse-results-summary {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.browse-results {
+    margin-top: 0;
+}
+
+.browse-no-results {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-light);
 }
 
 /* Favorites page */
@@ -1572,88 +1726,6 @@ a.summer-plan-week-card-camp-name:hover {
     color: var(--text-light);
 }
 
-.browse-filters {
-    background: color-mix(in srgb, var(--primary-color) 5%, var(--bg-light));
-    border-radius: var(--border-radius);
-    padding: 1.5rem 1.5rem 1rem;
-    margin-bottom: 2rem;
-    border: 1px solid var(--primary-border-subtle);
-    box-shadow: var(--shadow-md);
-}
-
-.browse-filters-title {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 1rem;
-}
-
-.browse-filters-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    align-items: flex-end;
-}
-
-.browse-filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 150px;
-}
-
-.browse-filter-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-.browse-filter-group input[type="number"],
-.browse-filter-group select,
-.browse-filter-group .search-input {
-    padding: 0.6rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    font-size: 0.95rem;
-    background: white;
-}
-
-.browse-filter-search {
-    flex: 1;
-    min-width: 240px;
-}
-
-.browse-filter-aftercare {
-    min-width: 140px;
-}
-
-.browse-filter-aftercare label {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-weight: 500;
-}
-
-.browse-filters-footer {
-    justify-content: space-between;
-}
-
-.browse-results-summary {
-    font-size: 0.95rem;
-    color: var(--text-light);
-}
-
-.browse-results {
-    margin-top: 1rem;
-}
-
-.browse-no-results {
-    text-align: center;
-    padding: 2.5rem 1rem;
-    color: var(--text-light);
-}
-
 .browse-no-results h2 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
@@ -1910,6 +1982,35 @@ a.summer-plan-week-card-camp-name:hover {
 
     .summer-plan-main-inner {
         padding: var(--sp-column-top) 20px 2rem;
+    }
+
+    .browse-shell {
+        flex-direction: column;
+    }
+
+    .browse-page {
+        --browse-column-top: 2rem;
+    }
+
+    .browse-filters-sidebar {
+        flex: none;
+        width: 100%;
+        padding: var(--browse-column-top) 0 1.25rem;
+        border-right: none;
+        border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .browse-page .app-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .browse-sidebar-brand {
+        padding: 0 1.25rem 1rem;
+    }
+
+    .browse-main-inner {
+        padding: var(--browse-column-top) 20px 2rem;
     }
     
     .section-header h2 {

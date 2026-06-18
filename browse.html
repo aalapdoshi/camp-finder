@@ -42,27 +42,29 @@
     </nav>
 
     <main class="browse-page">
-        <div class="container">
-            <header class="browse-header">
-                <h1>Browse Summer Camps</h1>
-                <p>Use filters to find the best match for your child.</p>
-            </header>
+        <div class="browse-shell">
+            <aside id="browse-filters" class="app-sidebar browse-filters-sidebar" aria-label="Search and filter">
+                <div class="browse-sidebar-brand">
+                    <div class="browse-sidebar-brand-icon" aria-hidden="true">
+                        <span class="material-symbols-outlined">tune</span>
+                    </div>
+                    <div>
+                        <h2 class="browse-sidebar-title">Search and Filter</h2>
+                        <p class="browse-sidebar-subtitle">Refine your results</p>
+                    </div>
+                </div>
 
-            <section class="browse-filters" id="browse-filters">
-                <h2 class="browse-filters-title">Search and Filter</h2>
-                <div class="browse-filters-row">
+                <div class="browse-filters-body">
                     <div class="browse-filter-group browse-filter-search">
                         <label for="browse-search">Search camps</label>
                         <input
                             type="text"
                             id="browse-search"
                             class="search-input"
-                            placeholder="Search by name, interests, description..."
+                            placeholder="Name, interests, description..."
                         >
                     </div>
-                </div>
 
-                <div class="browse-filters-row">
                     <div class="browse-filter-group">
                         <label for="browse-age">Child's age</label>
                         <input
@@ -105,30 +107,40 @@
                             With after care
                         </label>
                     </div>
-                </div>
 
-                <div class="browse-filters-row browse-filters-footer">
-                    <button type="button" id="browse-clear" class="btn-secondary">
-                        Clear filters
-                    </button>
-                    <div class="browse-results-summary">
-                        <span id="browse-results-count">Loading camps...</span>
+                    <div class="browse-filters-footer">
+                        <button type="button" id="browse-clear" class="browse-clear-link">
+                            Clear filters
+                        </button>
                     </div>
                 </div>
-            </section>
+            </aside>
 
-            <section class="browse-results">
-                <div id="browse-results" class="camps-grid">
-                    <div class="loading">Loading camps...</div>
+            <div class="browse-main-column">
+                <div class="browse-main-inner">
+                    <header class="browse-header">
+                        <h1>Browse Summer Camps</h1>
+                        <p>Use filters to find the best match for your child.</p>
+                    </header>
+
+                    <div class="browse-toolbar">
+                        <span id="browse-results-count" class="browse-results-summary">Loading camps...</span>
+                    </div>
+
+                    <section class="browse-results">
+                        <div id="browse-results" class="camps-grid">
+                            <div class="loading">Loading camps...</div>
+                        </div>
+                        <div id="browse-no-results" class="browse-no-results" style="display:none;">
+                            <h2>No camps match your filters</h2>
+                            <p>Try clearing some filters or broadening your search.</p>
+                            <button type="button" id="browse-clear-2" class="btn-secondary">
+                                Clear filters
+                            </button>
+                        </div>
+                    </section>
                 </div>
-                <div id="browse-no-results" class="browse-no-results" style="display:none;">
-                    <h2>No camps match your filters</h2>
-                    <p>Try clearing some filters or broadening your search.</p>
-                    <button type="button" id="browse-clear-2" class="btn-secondary">
-                        Clear filters
-                    </button>
-                </div>
-            </section>
+            </div>
         </div>
     </main>
 
@@ -224,4 +236,3 @@
     </script>
 </body>
 </html>
-

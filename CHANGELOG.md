@@ -18,6 +18,7 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Browse page: two-column layout — filters in `app-sidebar` left column; title, results count toolbar, and camp grid in main column (mirrors Summer Plan shell).
 - Unified page canvas (`#f8f9ff`), reusable sidebar tokens (`--sidebar-bg`, `--card-border`, `.app-sidebar`), and aligned week/camp card borders.
 - Browse and Favorites pages: Stitch-style rich camp cards — icon rows for ages/cost/location, pill badges, circular heart button, **Add to Plan** + **Details** footer actions (no image).
 - Nav auth: signed-in users see a **My Account** pill dropdown (avatar initial, email, Log out); footer auth simplified to Log in or Log out only.
