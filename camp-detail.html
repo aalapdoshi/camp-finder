@@ -13,6 +13,10 @@
     </script>
     <title>Camp Details - A2CampFinder</title>
     <meta name="description" content="Detailed information about this summer camp.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -38,7 +42,7 @@
     </nav>
 
     <main class="camp-detail-page">
-        <div class="container">
+        <div class="camp-detail-inner">
             <a href="browse.html" class="camp-detail-back">&larr; Back to Browse</a>
 
             <div id="camp-detail-loading" class="loading">
@@ -51,9 +55,9 @@
                 <a href="browse.html" class="btn-primary">Back to Browse</a>
             </div>
 
-            <div id="camp-detail" class="camp-detail" style="display:none;">
-                <!-- Camp details will be rendered here -->
-            </div>
+            <article id="camp-detail" class="camp-detail-layout" style="display:none;" aria-live="polite">
+                <!-- Camp details rendered by camp-detail.js -->
+            </article>
         </div>
     </main>
 

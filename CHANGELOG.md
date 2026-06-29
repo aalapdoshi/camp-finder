@@ -19,6 +19,7 @@
 
 ### Changed
 - Browse page: two-column layout — filters in `app-sidebar` left column; title, results count toolbar, and camp grid in main column (mirrors Summer Plan shell).
+- Camp detail page (Phase A): text-only hero with badges, action bar (Visit Website, favorites, Add to Summer Plan), two-column layout with card sections and Quick Details sidebar; Plus Jakarta Sans and `#f8f9ff` canvas aligned with Browse/Summer Plan.
 - Unified page canvas (`#f8f9ff`), reusable sidebar tokens (`--sidebar-bg`, `--card-border`, `.app-sidebar`), and aligned week/camp card borders.
 - Browse and Favorites pages: Stitch-style rich camp cards — icon rows for ages/cost/location, pill badges, circular heart button, **Add to Plan** + **Details** footer actions (no image).
 - Nav auth: signed-in users see a **My Account** pill dropdown (avatar initial, email, Log out); footer auth simplified to Log in or Log out only.
