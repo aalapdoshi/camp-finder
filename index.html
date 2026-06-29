@@ -13,6 +13,11 @@
     </script>
     <title>A2CampFinder - Find Your Perfect Summer Camp in Ann Arbor</title>
     <meta name="description" content="Ann Arbor summer camps, from Crystal Hoppe’s community spreadsheet—search, filter, save favorites, and plan your summer. Read our story on About.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="images/hero-summer-camp.png">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -39,45 +44,53 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <h1 class="hero-title">Find Your Perfect Summer Camp</h1>
-            <p class="hero-subtitle">From a parent-built spreadsheet shared thousands of times—to a searchable way to plan summer in Ann Arbor. <a href="about.html">Read our story →</a></p>
-            
-            <!-- Search Box -->
-            <div class="hero-search">
-                <div class="browse-filter-group browse-filter-search">
-                    <label for="homepage-search">Search camps</label>
-                    <div class="hero-search-box">
-                        <input
-                            type="text"
-                            id="homepage-search"
-                            class="search-input"
-                            placeholder="Search by name, interests, description..."
-                        >
-                        <button id="homepage-search-btn" class="search-btn" type="button">Search</button>
+        <div class="hero-main">
+            <div class="container hero-inner">
+                <div class="hero-content">
+                    <h1 class="hero-title">Find Your Perfect Summer <span class="hero-title-accent">Camp</span></h1>
+                    <p class="hero-subtitle">From a parent-built spreadsheet shared thousands of times—to a searchable way to plan summer in Ann Arbor. <a href="about.html">Read our story →</a></p>
+
+                    <div class="hero-search">
+                        <div class="hero-search-pill">
+                            <span class="material-symbols-outlined hero-search-icon" aria-hidden="true">search</span>
+                            <input
+                                type="text"
+                                id="homepage-search"
+                                class="search-input"
+                                placeholder="Search by name, interests, description..."
+                                aria-label="Search camps"
+                            >
+                            <button id="homepage-search-btn" class="search-btn" type="button">Search</button>
+                        </div>
+
+                        <div class="hero-checkbox">
+                            <label for="homepage-aftercare">
+                                <input type="checkbox" id="homepage-aftercare">
+                                With after care
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="hero-cta-row">
+                        <a href="summer-plan.html" class="hero-cta-primary">Start Planning</a>
+                        <a href="browse.html" class="hero-cta-ghost">Browse Camps</a>
                     </div>
                 </div>
-                <div class="browse-filter-group browse-filter-aftercare hero-checkbox">
-                    <label for="homepage-aftercare">
-                        <input type="checkbox" id="homepage-aftercare">
-                        With after care
-                    </label>
-                </div>
             </div>
+        </div>
 
-            <div class="hero-stats">
-                <div class="stat">
-                    <div class="stat-number" id="total-camps">Loading...</div>
-                    <div class="stat-label">Summer Camps</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="age-range">Loading...</div>
-                    <div class="stat-label">Age Range</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="price-range">Loading...</div>
-                    <div class="stat-label">Price Range</div>
-                </div>
+        <div class="hero-stats-bar" aria-label="Camp directory stats">
+            <div class="stat">
+                <div class="stat-number" id="total-camps">Loading...</div>
+                <div class="stat-label">Summer Camps</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="age-range">Loading...</div>
+                <div class="stat-label">Age Range</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="price-range">Loading...</div>
+                <div class="stat-label">Price Range</div>
             </div>
         </div>
     </section>

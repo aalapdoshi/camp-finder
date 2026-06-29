@@ -70,6 +70,7 @@ Extracted from Stitch project **Summer Camp Weekly Planner Dashboard** (`project
 ## Layout
 
 - **Shell:** `min-h-screen` column; optional `lg:flex-row` for sidebar + main  
+- **Homepage hero:** Illustration `images/hero-summer-camp.png` on `.hero` with left-to-right scrim gradient; left-aligned `.hero-content` with generous left inset; pill search (`.hero-search-pill`); after-care checkbox below search, above `.hero-cta-row`; primary + ghost CTAs; full-width `.hero-stats-bar` (three columns) at bottom of hero. Navbar stays separate above hero.
 - **Header:** `border-b border-primary/10`, `bg-white` / `dark:bg-background-dark`, `px-6 py-3` → `lg:px-10`  
 - **Sidebar:** `lg:w-72`, `border-r` using `--sidebar-border`, `background: --sidebar-bg`, vertical `gap-8`  
 - **Sidebar / card borders (`:root`):** `--sidebar-bg` `rgb(239, 244, 255)`, `--card-border` `rgb(210, 214, 228)` (sidebar divider + camp/week cards), `--sidebar-item-hover` `#dce9ff`, page canvas `--bg-light` `#f8f9ff`

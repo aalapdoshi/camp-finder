@@ -18,6 +18,7 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Homepage hero: summer-camp illustration background (below navbar), left-aligned copy, pill search, after-care checkbox (below search, above CTAs), **Start Planning** / **Browse Camps** buttons; existing search JS unchanged.
 - Browse page: two-column layout — filters in `app-sidebar` left column; title, results count toolbar, and camp grid in main column (mirrors Summer Plan shell).
 - Camp detail page (Phase A): text-only hero with badges, action bar (Visit Website, favorites, Add to Summer Plan), two-column layout with card sections and Quick Details sidebar; Plus Jakarta Sans and `#f8f9ff` canvas aligned with Browse/Summer Plan.
 - Unified page canvas (`#f8f9ff`), reusable sidebar tokens (`--sidebar-bg`, `--card-border`, `.app-sidebar`), and aligned week/camp card borders.
