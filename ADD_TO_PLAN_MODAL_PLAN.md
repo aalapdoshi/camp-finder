@@ -10,8 +10,8 @@ Require a child name on every summer-plan add (no **Unassigned**), add **Estimat
 - **First camp / no names yet:** If `getDistinctChildNames()` returns `[]`, show only **+ Add New** child flow with a **required** name input—user cannot add a camp without naming a child.
 - **Child picker UX:** Replace `<select>` with **pill chips** per Stitch (`code.html` lines 428–437): one chip per existing name (filled = selected), **+ Add New** dashed chip reveals text input.
 - **Estimated cost — blank = 0:** Add `estimated_cost` on `summer_plan` as **`numeric not null default 0`**. Modal field is optional to fill in, but empty/blank input **persists as `0`**, not `null`, so future **sum across camps** is straightforward (`SUM(estimated_cost)` / client reduce).
-- **Cost parsing:** `parseEstimatedCostInput(value)` — empty string, whitespace, or omitted → `0`; valid non-negative number otherwise; reject negative or non-numeric with modal error.
-- **Cost prefill:** On modal open, prefill from camp `Cost Per Week` or parse `Cost Display` when available; user can clear field (still saves `0`) or override.
+- **Cost is a user total, not catalog rate:** `estimated_cost` is the **total for that plan entry** (whole camp stint). It is **not** per day/week and is **not** prorated by dates. List, calendar, and sidebar total display/sum **only** this saved value.
+- **Cost prefill:** Modal cost field **starts empty** — camp catalog per-day/per-week rates are not copied (avoids showing e.g. a daily rate as the plan total).
 - **UI empty state:** Cost input may appear empty on open when no prefill; placeholder optional (e.g. `0`). Do not require user to type `0`.
 - **Modal shell:** Stitch card: header with title + camp subtitle + Material **close**, body `space-y-6`, footer on tinted bar with **Add to Plan** + **Cancel**.
 - **Status control:** Segmented pill toggle (Want to book | Booked); values `want_to_book` / `booked`.
@@ -62,7 +62,7 @@ Require a child name on every summer-plan add (no **Unassigned**), add **Estimat
 - [x] 🟩 **Step 4: Modal markup & cost field (`js/summer-plan.js`)**
   - [x] 🟩 Restructure `openAddToPlanModal` template: Stitch header / body / footer
   - [x] 🟩 Add `#add-to-plan-cost` — `type="number"` min="0" step="1", `$` prefix (Stitch layout)
-  - [x] 🟩 Prefill cost from camp when available; empty field allowed
+  - [x] 🟩 Modal cost starts empty; user enters total for the plan entry
   - [x] 🟩 `handleAddToPlanSubmit()`: `parseEstimatedCostInput` → always numeric (min `0`) → `addPlanEntry`
   - [x] 🟩 Child chips; segmented status; Cancel button
 
@@ -81,7 +81,7 @@ Require a child name on every summer-plan add (no **Unassigned**), add **Estimat
   - [x] 🟩 (Optional) **Cost** column in list showing `estimated_cost` (including `$0`)
 
 - [x] 🟩 **Step 8: Call sites**
-  - [x] 🟩 `js/airtable.js` — pass camp cost fields into `openAddToPlanModal` for prefill
+  - [x] 🟩 `js/airtable.js` — pass camp fields into `openAddToPlanModal` (cost field no longer prefilled from catalog)
   - [x] 🟩 `js/camp-detail.js` — same for detail Add to Plan
 
 - [x] 🟩 **Step 9: Verification**
@@ -89,7 +89,7 @@ Require a child name on every summer-plan add (no **Unassigned**), add **Estimat
   - [x] 🟩 Child required on every add
   - [x] 🟩 Blank cost → `estimated_cost = 0` in DB
   - [x] 🟩 Entered cost persists correctly
-  - [x] 🟩 Cost prefill from camp when available
+  - [x] 🟩 Saved total shown on calendar and list as entered
   - [x] 🟩 `getPlanEntries()` returns numeric `estimated_cost` for sum-ready totals later
 
 - [x] 🟩 **Step 10: Documentation**
@@ -110,8 +110,8 @@ Require a child name on every summer-plan add (no **Unassigned**), add **Estimat
 | `supabase/migrations/…_add_estimated_cost.sql` | `not null default 0` |
 | `js/summer-plan.js` | Modal, chips, cost coercion, CRUD |
 | `js/summer-plan-page.js` | Child validation; optional cost column |
-| `js/airtable.js` | Cost prefill on open |
-| `js/camp-detail.js` | Cost prefill on open |
+| `js/airtable.js` | Opens add-to-plan modal from camp cards |
+| `js/camp-detail.js` | Opens add-to-plan modal from detail page |
 | `css/styles.css` | Stitch-style modal |
 | `SUMMER_PLAN_PLAN.md` / `SETUP.md` | Migration docs |
 | `CHANGELOG.md` | Brief note |

@@ -87,6 +87,17 @@ function validateChildNameForAdd(newName, existingNames) {
 }
 
 /**
+ * User-entered total for one plan entry (entire camp stint). Not per day or per week;
+ * never derived from camp catalog fields or date span.
+ * @param {{ estimated_cost?: number|string|null }} entry
+ * @returns {number}
+ */
+function getEntryEstimatedCost(entry) {
+    const n = Number(entry?.estimated_cost);
+    return Number.isFinite(n) ? n : 0;
+}
+
+/**
  * Parse cost input; empty → 0 for sum-ready totals.
  * @param {string|number|null|undefined} value
  * @returns {{ ok: boolean, error?: string, value?: number }}
@@ -102,21 +113,12 @@ function parseEstimatedCostInput(value) {
 }
 
 /**
- * Best-effort default cost from camp Airtable fields for modal prefill.
- * @param {object|null} fields
- * @returns {string} numeric string for input or ''
+ * Modal cost field starts empty — user enters their total for this plan entry.
+ * Camp catalog rates (per day/week) are not copied; list, calendar, and totals use only saved `estimated_cost`.
+ * @param {object|null} _fields - unused; kept for call-site compatibility
+ * @returns {string} always ''
  */
-function getDefaultEstimatedCostFromCampFields(fields) {
-    if (!fields) return '';
-    const perWeek = fields['Cost Per Week'];
-    if (perWeek != null && perWeek !== '' && Number.isFinite(Number(perWeek))) {
-        return String(Number(perWeek));
-    }
-    const display = fields['Cost Display'];
-    if (display) {
-        const match = String(display).match(/\$?\s*(\d+(?:\.\d+)?)/);
-        if (match) return String(Number(match[1]));
-    }
+function getDefaultEstimatedCostFromCampFields(_fields) {
     return '';
 }
 
@@ -403,11 +405,12 @@ async function openAddToPlanModal(campId, campName, options = null) {
                             </div>
                         </div>
                         <div class="add-to-plan-field">
-                            <label for="add-to-plan-cost">Estimated Cost ($)</label>
+                            <label for="add-to-plan-cost">Total Estimated Cost ($)</label>
                             <div class="add-to-plan-cost-wrap">
                                 <span class="add-to-plan-cost-prefix" aria-hidden="true">$</span>
                                 <input type="number" id="add-to-plan-cost" min="0" step="1" placeholder="0">
                             </div>
+                            <p class="add-to-plan-field-hint">One total for this camp on your plan — not per day or week. This amount is shown on the calendar, list, and cost total.</p>
                         </div>
                         <div class="add-to-plan-field">
                             <span class="add-to-plan-field-label">Status</span>
@@ -658,4 +661,9 @@ function formatEstimatedCostDisplay(value) {
     const num = Number(value);
     if (!Number.isFinite(num)) return '$0';
     return num === 0 ? '$0' : `$${num.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
+/** Format saved plan-entry cost for list/calendar display. */
+function formatEntryEstimatedCost(entry) {
+    return formatEstimatedCostDisplay(getEntryEstimatedCost(entry));
 }

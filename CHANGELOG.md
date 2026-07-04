@@ -19,7 +19,9 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
-- Add to Summer Plan: child name required on every add and list save; Summer Plan list shows **Cost** column; cost prefills from camp **Cost Per Week** / **Cost Display** when available.
+- Summer Plan cost: `estimated_cost` is the user-entered **total for each camp** (modal or list edit) — shown as-is on calendar and list; sidebar total sums those saved amounts once per entry (not per day/week and not from camp catalog rates).
+- Summer Plan: editable cost in list view, cost on calendar cards (first week only per camp), sticky total estimated cost in sidebar (mobile bar at bottom of page); total sums booked and want-to-book entries for the active child filter.
+- Add to Summer Plan: child name required on every add and list save; **Total cost** column on Summer Plan list; modal cost field starts empty (no catalog prefill).
 - Homepage hero: summer-camp illustration background (below navbar), left-aligned copy, pill search, after-care checkbox (below search, above CTAs), **Start Planning** / **Browse Camps** buttons; existing search JS unchanged.
 - Browse page: two-column layout — filters in `app-sidebar` left column; title, results count toolbar, and camp grid in main column (mirrors Summer Plan shell).
 - Camp detail page (Phase A): text-only hero with badges, action bar (Visit Website, favorites, Add to Summer Plan), two-column layout with card sections and Quick Details sidebar; Plus Jakarta Sans and `#f8f9ff` canvas aligned with Browse/Summer Plan.
@@ -42,6 +44,7 @@
   - Integrate AI enrichment for newly created camps
 
 ### Fixed
+- Add to Summer Plan modal: `$` prefix no longer overlaps the first digit in the cost field (prefix sits outside the input).
 - Fixed `campfinder_index.html` home link to point at `campfinder_index.html` (not `index.html`).
 - Fixed Airtable base ID usage in `js/config.js` (use base id only for Airtable API URL construction).
 

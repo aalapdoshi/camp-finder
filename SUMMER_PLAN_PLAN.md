@@ -128,7 +128,14 @@ alter table public.summer_plan
 
 See `supabase/migrations/20260529120000_add_child_name.sql` and `MULTI_KID_SUMMER_PLAN_PLAN.md`.
 
-### Estimated cost per entry
+### Estimated cost per entry (`estimated_cost`)
+
+**Semantics:** One user-entered **total dollar amount** for that plan row (the whole camp stint). It is **not** per day, per week, or prorated by how many weeks the camp spans on the calendar. List view, calendar cards, and the sidebar total all read **only** the saved `estimated_cost` — never camp catalog **Cost Per Week** / **Cost Display**.
+
+- Modal label: **Total Estimated Cost ($)**; field starts empty (blank saves as `0`).
+- List: **Total cost** column — inline edit saves back to `estimated_cost`.
+- Calendar: shows the same saved total on the camp’s **first** week only (one card per entry).
+- Sidebar total: sum of `estimated_cost` for entries matching the active child filter (each entry counted once).
 
 Run after deploying code that writes `estimated_cost` (Add to Plan modal). In Supabase **SQL Editor**:
 

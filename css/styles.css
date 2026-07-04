@@ -1422,21 +1422,22 @@ body {
 }
 
 .add-to-plan-cost-wrap {
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 .add-to-plan-cost-prefix {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
+    flex-shrink: 0;
     color: #434655;
     font-size: 0.875rem;
-    pointer-events: none;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .add-to-plan-cost-wrap input {
-    padding-left: 2rem;
+    flex: 1;
+    min-width: 0;
 }
 
 .add-to-plan-child-chips {
@@ -1584,12 +1585,6 @@ body {
     color: #434655;
 }
 
-.summer-plan-cell-cost {
-    white-space: nowrap;
-    color: #434655;
-    font-size: 0.875rem;
-}
-
 @media (max-width: 540px) {
     .add-to-plan-date-row {
         grid-template-columns: 1fr;
@@ -1690,8 +1685,9 @@ body {
     flex: 0 0 17rem;
     display: flex;
     flex-direction: column;
-    padding: var(--sp-column-top) 0 1rem;
+    padding: var(--sp-column-top) 0 0;
     background: var(--sidebar-bg);
+    min-height: calc(100vh - 4.5rem);
 }
 
 .summer-plan-sidebar-brand {
@@ -1737,6 +1733,80 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+    flex: 1 1 auto;
+}
+
+.summer-plan-cost-total {
+    background: var(--sp-surface-lowest);
+    border-top: 1px solid var(--sp-outline-variant);
+    padding: 1rem 1.25rem;
+}
+
+.summer-plan-cost-total--sidebar {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    z-index: 2;
+}
+
+.summer-plan-cost-total--mobile {
+    display: none;
+}
+
+.summer-plan-cost-total-label {
+    margin: 0 0 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--sp-on-surface-variant);
+    line-height: 1.3;
+}
+
+.summer-plan-cost-total-amount {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--sp-on-surface);
+}
+
+.summer-plan-cost-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 5.5rem;
+}
+
+.summer-plan-cost-wrap .summer-plan-cost-prefix {
+    flex-shrink: 0;
+    color: var(--sp-on-surface-variant);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.summer-plan-edit-cost {
+    width: 5rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--sp-on-surface);
+    background: var(--sp-surface-lowest);
+    box-sizing: border-box;
+}
+
+.summer-plan-edit-cost:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.summer-plan-cell-cost {
+    white-space: nowrap;
+    color: var(--sp-on-surface-variant);
+    font-size: 0.875rem;
 }
 
 .summer-plan-child-nav-item {
@@ -2051,6 +2121,13 @@ a.summer-plan-week-card-camp-name:hover {
     margin: 0;
     font-size: 0.875rem;
     color: var(--sp-on-surface-variant);
+}
+
+.summer-plan-week-card-cost {
+    margin: 0.35rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--sp-on-surface);
 }
 
 .status-badge {
@@ -2506,9 +2583,32 @@ a.summer-plan-week-card-camp-name:hover {
     .summer-plan-child-sidebar {
         flex: none;
         width: 100%;
-        padding: var(--sp-column-top) 0 1rem;
+        min-height: 0;
+        padding: var(--sp-column-top) 0 0;
         border-right: none;
         border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .summer-plan-cost-total--sidebar {
+        display: none;
+    }
+
+    .summer-plan-cost-total--mobile {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 90;
+        box-shadow: 0 -4px 12px rgba(11, 28, 48, 0.08);
+    }
+
+    .summer-plan-page.summer-plan-has-mobile-total {
+        padding-bottom: 5.5rem;
+    }
+
+    .summer-plan-page.summer-plan-has-mobile-total .footer {
+        margin-bottom: 5.5rem;
     }
 
     .summer-plan-page .app-sidebar {

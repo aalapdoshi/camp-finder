@@ -88,7 +88,58 @@ function refreshViews() {
     const filtered = filterEntries(allEntries, activeChildFilter);
     renderList(filtered, cachedCampById, knownChildNames);
     renderCalendar(filtered, cachedCampById);
+    renderCostTotal(filtered, activeChildFilter);
     wireRemoveButtons();
+}
+
+function sumEstimatedCost(entries) {
+    return entries.reduce((sum, e) => sum + getEntryEstimatedCost(e), 0);
+}
+
+function labelForCostTotal(filter) {
+    if (filter === 'all') return 'Total Estimated Cost for all children';
+    return `${filter}'s total estimated cost`;
+}
+
+function renderCostTotal(entries, filter) {
+    const sidebar = document.getElementById('summer-plan-cost-total-sidebar');
+    const mobile = document.getElementById('summer-plan-cost-total-mobile');
+    const total = sumEstimatedCost(entries);
+    const label = labelForCostTotal(filter);
+    const amount = formatEstimatedCostDisplay(total);
+    const html = `
+        <p class="summer-plan-cost-total-label">${escapeHtml(label)}</p>
+        <p class="summer-plan-cost-total-amount">${amount}</p>
+    `;
+    for (const el of [sidebar, mobile]) {
+        if (!el) continue;
+        el.innerHTML = html;
+        el.hidden = false;
+    }
+    document.querySelector('.summer-plan-page')?.classList.toggle(
+        'summer-plan-has-mobile-total',
+        !!(mobile && !mobile.hidden)
+    );
+}
+
+function costInputValueFromEntry(entry) {
+    const n = getEntryEstimatedCost(entry);
+    return String(Math.round(n));
+}
+
+function buildFirstWeekByEntryId(entries, weeks) {
+    const map = new Map();
+    for (const entry of entries) {
+        const start = entry.start_date;
+        const end = entry.end_date || entry.start_date;
+        for (const week of weeks) {
+            if (dateRangeOverlapsWeek(start, end, week.startDate, week.endDate)) {
+                map.set(entry.id, week.startDate);
+                break;
+            }
+        }
+    }
+    return map;
 }
 
 const CHILD_NAV_ICONS = ['child_care', 'child_friendly', 'face', 'boy', 'girl'];
@@ -194,7 +245,13 @@ function renderList(entries, campById, childNames) {
                 <input type="date" class="summer-plan-edit-end" value="${entry.end_date || ''}" data-entry-id="${entry.id}">
             </td>
             <td class="summer-plan-cell-week">${weekStr}</td>
-            <td class="summer-plan-cell-cost">${formatEstimatedCostDisplay(entry.estimated_cost)}</td>
+            <td class="summer-plan-cell-cost">
+                <div class="summer-plan-cost-wrap">
+                    <span class="summer-plan-cost-prefix" aria-hidden="true">$</span>
+                    <input type="number" class="summer-plan-edit-cost" min="0" step="1" placeholder="0"
+                        value="${costInputValueFromEntry(entry)}" data-entry-id="${entry.id}">
+                </div>
+            </td>
             <td>
                 <select class="summer-plan-edit-status" data-entry-id="${entry.id}">
                     <option value="booked" ${entry.status === 'booked' ? 'selected' : ''}>Booked</option>
@@ -271,6 +328,14 @@ function wireInlineEdit(childNames) {
             if (ok) await afterRowSaved();
         });
     });
+
+    document.querySelectorAll('.summer-plan-edit-cost').forEach(input => {
+        input.addEventListener('change', async () => {
+            const row = document.querySelector(`tr[data-entry-id="${input.dataset.entryId}"]`);
+            const ok = await saveRowFromDom(row);
+            if (ok) await afterRowSaved();
+        });
+    });
 }
 
 async function saveRowFromDom(row, options = {}) {
@@ -280,6 +345,7 @@ async function saveRowFromDom(row, options = {}) {
     const endInput = row.querySelector('.summer-plan-edit-end');
     const statusSelect = row.querySelector('.summer-plan-edit-status');
     const childInput = row.querySelector('.summer-plan-edit-child');
+    const costInput = row.querySelector('.summer-plan-edit-cost');
 
     const updates = {
         start_date: startInput?.value,
@@ -287,6 +353,15 @@ async function saveRowFromDom(row, options = {}) {
         status: statusSelect?.value || 'want_to_book',
         child_name: childInput?.value ?? null
     };
+
+    if (costInput) {
+        const costResult = parseEstimatedCostInput(costInput.value);
+        if (!costResult.ok) {
+            alert('Please enter a valid cost (0 or greater).');
+            return false;
+        }
+        updates.estimated_cost = costResult.value;
+    }
 
     if (!normalizeChildName(updates.child_name)) {
         alert('Child name is required.');
@@ -357,6 +432,7 @@ function renderCalendarWeekCard(entry, campById) {
             </div>
             <h4 class="summer-plan-week-card-camp">${campLink}</h4>
             <p class="summer-plan-week-card-dates">${escapeHtml(datesLabel)}</p>
+            <p class="summer-plan-week-card-cost">${formatEntryEstimatedCost(entry)}</p>
         </div>
     </article>`;
 }
@@ -366,13 +442,12 @@ function renderCalendar(entries, campById) {
     if (!container) return;
 
     const weeks = getSummerWeeks2026();
+    const firstWeekByEntry = buildFirstWeekByEntryId(entries, weeks);
     container.innerHTML = '';
 
     for (const week of weeks) {
         const entriesInWeek = entries
-            .filter(e =>
-                dateRangeOverlapsWeek(e.start_date, e.end_date || e.start_date, week.startDate, week.endDate)
-            )
+            .filter(e => firstWeekByEntry.get(e.id) === week.startDate)
             .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
 
         const weekEl = document.createElement('section');
