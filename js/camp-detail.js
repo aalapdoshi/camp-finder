@@ -90,7 +90,7 @@ async function initCampDetailPage() {
             const isSaved = savedIds.includes(campId);
             detailEl.innerHTML = renderCampDetail(camp, { isSaved, isLoggedIn });
             if (isLoggedIn) wireFavoriteButton(detailEl, campId, isSaved);
-            wireAddToPlanButton(detailEl, campId, camp.fields['Camp Name'] || 'Camp');
+            wireAddToPlanButton(detailEl, campId, camp.fields['Camp Name'] || 'Camp', camp.fields);
         }
     } catch (error) {
         console.error('Error loading camp detail:', error);
@@ -102,12 +102,12 @@ async function initCampDetailPage() {
 /**
  * Wire up the Add to Summer Plan button.
  */
-function wireAddToPlanButton(container, campId, campName) {
+function wireAddToPlanButton(container, campId, campName, campFields = null) {
     const btn = container.querySelector('.btn-add-to-plan');
     if (!btn) return;
     btn.addEventListener('click', async () => {
         if (typeof openAddToPlanModal === 'function') {
-            await openAddToPlanModal(campId, campName);
+            await openAddToPlanModal(campId, campName, { campFields });
         }
     });
 }

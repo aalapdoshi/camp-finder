@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Added
+- Add to Summer Plan modal (Stitch): pill child chips (no Unassigned), estimated cost field (blank saves as `$0`), segmented status toggle, Cancel action. Migration: `supabase/migrations/20260703190000_add_estimated_cost.sql`.
 - Multi-child summer plan (Option A): optional `child_name` on plan entries; filter chips on Summer Plan page; child picker in add-to-plan modal; color-coded calendar labels. Migration: `supabase/migrations/20260529120000_add_child_name.sql`.
 - Added `DESIGN_SYSTEM.md` — design tokens and UI patterns extracted from Stitch “Summer Camp Weekly Planner Dashboard” screens.
 - Added `camp-detail.html` camp details page (supports `?id=<airtable_record_id>`).
@@ -18,6 +19,7 @@
 - Added `AI_ENRICHMENT_PLAN.md` and `AI_ENRICHMENT_SETUP.md` documentation for AI enrichment feature.
 
 ### Changed
+- Add to Summer Plan: child name required on every add and list save; Summer Plan list shows **Cost** column; cost prefills from camp **Cost Per Week** / **Cost Display** when available.
 - Homepage hero: summer-camp illustration background (below navbar), left-aligned copy, pill search, after-care checkbox (below search, above CTAs), **Start Planning** / **Browse Camps** buttons; existing search JS unchanged.
 - Browse page: two-column layout — filters in `app-sidebar` left column; title, results count toolbar, and camp grid in main column (mirrors Summer Plan shell).
 - Camp detail page (Phase A): text-only hero with badges, action bar (Visit Website, favorites, Add to Summer Plan), two-column layout with card sections and Quick Details sidebar; Plus Jakarta Sans and `#f8f9ff` canvas aligned with Browse/Summer Plan.

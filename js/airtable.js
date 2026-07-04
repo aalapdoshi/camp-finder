@@ -438,7 +438,7 @@ function createCampCard(camp, options = {}) {
             const campId = addToPlanBtn.dataset.campId;
             const campName = addToPlanBtn.dataset.campName || 'Camp';
             if (typeof openAddToPlanModal === 'function') {
-                await openAddToPlanModal(campId, campName);
+                await openAddToPlanModal(campId, campName, { campFields: fields });
             }
         });
     }

@@ -1267,52 +1267,342 @@ body {
     padding: 2rem;
 }
 
-/* Add to Summer Plan modal */
-.add-to-plan-modal .feedback-title {
-    margin-bottom: 0.5rem;
+/* Add to Summer Plan modal — Stitch */
+.add-to-plan-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(11, 28, 48, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.add-to-plan-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.add-to-plan-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.add-to-plan-modal.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.add-to-plan-dialog {
+    width: 100%;
+    max-width: 32rem;
+    background: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.add-to-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid #c3c6d7;
+}
+
+.add-to-plan-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #0b1c30;
+    line-height: 1.25;
 }
 
 .add-to-plan-camp-name {
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 1rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: #434655;
+}
+
+.add-to-plan-close {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: #434655;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.add-to-plan-close:hover {
+    background: #d3e4fe;
+    color: #0b1c30;
+}
+
+.add-to-plan-close .material-symbols-outlined {
+    font-size: 1.25rem;
 }
 
 .add-to-plan-form {
     display: flex;
     flex-direction: column;
+}
+
+.add-to-plan-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.add-to-plan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.add-to-plan-field label,
+.add-to-plan-field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #0b1c30;
+}
+
+.add-to-plan-field input[type="date"],
+.add-to-plan-field input[type="number"],
+.add-to-plan-child-new {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #c3c6d7;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: #0b1c30;
+    background: #f8f9ff;
+    box-sizing: border-box;
+}
+
+.add-to-plan-field input[type="date"]:focus,
+.add-to-plan-field input[type="number"]:focus,
+.add-to-plan-child-new:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.add-to-plan-date-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
 }
 
-.add-to-plan-field label {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+.add-to-plan-cost-wrap {
+    position: relative;
 }
 
-.add-to-plan-field input[type="date"] {
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+.add-to-plan-cost-prefix {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #434655;
+    font-size: 0.875rem;
+    pointer-events: none;
+}
+
+.add-to-plan-cost-wrap input {
+    padding-left: 2rem;
+}
+
+.add-to-plan-child-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.add-to-plan-child-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #c3c6d7;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #434655;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-family: inherit;
+}
+
+.add-to-plan-child-chip:hover {
+    background: #d3e4fe;
+}
+
+.add-to-plan-child-chip.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.add-to-plan-child-chip-new {
+    border-style: dashed;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.add-to-plan-child-chip-new:hover {
+    background: #dbe1ff;
+}
+
+.add-to-plan-child-chip-new .material-symbols-outlined {
     font-size: 1rem;
 }
 
-.add-to-plan-status-group {
+.add-to-plan-status-segment {
     display: flex;
-    gap: 1rem;
+    padding: 0.25rem;
+    background: #eff4ff;
+    border: 1px solid #c3c6d7;
+    border-radius: 999px;
+    gap: 0.15rem;
 }
 
-.add-to-plan-status-option {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.add-to-plan-status-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #434655;
     cursor: pointer;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+}
+
+.add-to-plan-status-btn:hover:not(.active) {
+    background: #d3e4fe;
+}
+
+.add-to-plan-status-btn.active {
+    background: #ffffff;
+    color: #2563eb;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .add-to-plan-error {
-    color: #dc2626;
+    color: #ba1a1a;
     font-size: 0.875rem;
+    margin: 0;
+}
+
+.add-to-plan-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    background: #eff4ff;
+    border-top: 1px solid #c3c6d7;
+}
+
+.add-to-plan-submit {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: filter 0.15s, transform 0.1s;
+    font-family: inherit;
+}
+
+.add-to-plan-submit:hover {
+    filter: brightness(1.08);
+}
+
+.add-to-plan-submit:active {
+    transform: scale(0.98);
+}
+
+.add-to-plan-cancel {
+    padding: 0.75rem 2rem;
+    border: 1px solid #c3c6d7;
+    border-radius: 999px;
+    background: transparent;
+    color: #0b1c30;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+}
+
+.add-to-plan-cancel:hover {
+    background: #d3e4fe;
+}
+
+.add-to-plan-child-new {
+    margin-top: 0;
+}
+
+.add-to-plan-field-hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #434655;
+}
+
+.summer-plan-cell-cost {
+    white-space: nowrap;
+    color: #434655;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 540px) {
+    .add-to-plan-date-row {
+        grid-template-columns: 1fr;
+    }
+
+    .add-to-plan-footer {
+        flex-direction: column;
+    }
+
+    .add-to-plan-cancel {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 /* Summer Plan page — Stitch Phase 1 Evolution tokens (scoped) */
@@ -1596,21 +1886,6 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     font-size: 0.875rem;
-}
-
-.add-to-plan-child-new {
-    margin-top: 0.5rem;
-    width: 100%;
-    padding: 0.6rem 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.95rem;
-}
-
-.add-to-plan-field-hint {
-    margin-top: 0.35rem;
-    font-size: 0.8rem;
-    color: var(--text-light);
 }
 
 .summer-plan-calendar-view {

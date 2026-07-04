@@ -87,6 +87,40 @@ function validateChildNameForAdd(newName, existingNames) {
 }
 
 /**
+ * Parse cost input; empty → 0 for sum-ready totals.
+ * @param {string|number|null|undefined} value
+ * @returns {{ ok: boolean, error?: string, value?: number }}
+ */
+function parseEstimatedCostInput(value) {
+    const str = value == null ? '' : String(value).trim();
+    if (str === '') return { ok: true, value: 0 };
+    const num = Number(str);
+    if (!Number.isFinite(num) || num < 0) {
+        return { ok: false, error: 'Please enter a valid cost (0 or greater).' };
+    }
+    return { ok: true, value: num };
+}
+
+/**
+ * Best-effort default cost from camp Airtable fields for modal prefill.
+ * @param {object|null} fields
+ * @returns {string} numeric string for input or ''
+ */
+function getDefaultEstimatedCostFromCampFields(fields) {
+    if (!fields) return '';
+    const perWeek = fields['Cost Per Week'];
+    if (perWeek != null && perWeek !== '' && Number.isFinite(Number(perWeek))) {
+        return String(Number(perWeek));
+    }
+    const display = fields['Cost Display'];
+    if (display) {
+        const match = String(display).match(/\$?\s*(\d+(?:\.\d+)?)/);
+        if (match) return String(Number(match[1]));
+    }
+    return '';
+}
+
+/**
  * Get plan entries for the current user.
  * @param {{ childName?: string }} [options] - omitted/'all' = all; 'unassigned' = null names; else exact name
  */
@@ -102,7 +136,7 @@ async function getPlanEntries(options = {}) {
     try {
         let query = client
             .from('summer_plan')
-            .select('id, camp_id, start_date, end_date, status, notes, child_name, created_at')
+            .select('id, camp_id, start_date, end_date, status, notes, child_name, estimated_cost, created_at')
             .eq('user_id', session.user.id);
 
         if (filter === 'unassigned') {
@@ -138,9 +172,10 @@ async function getDistinctChildNames() {
  * @param {string} startDate
  * @param {string|null} endDate
  * @param {string} status
- * @param {string|null} childName
+ * @param {string} childName - required non-empty
+ * @param {number} [estimatedCost=0]
  */
-async function addPlanEntry(campId, startDate, endDate, status, childName = null) {
+async function addPlanEntry(campId, startDate, endDate, status, childName, estimatedCost = 0) {
     const session = await getSession();
     if (!session?.user?.id) return false;
 
@@ -149,8 +184,14 @@ async function addPlanEntry(campId, startDate, endDate, status, childName = null
 
     const existing = await getDistinctChildNames();
     const validated = validateChildNameForAdd(childName || '', existing);
-    if (!validated.ok) {
-        console.error('Invalid child name:', validated.error);
+    if (!validated.ok || !validated.name) {
+        console.error('Invalid or missing child name:', validated.error);
+        return false;
+    }
+
+    const costParsed = parseEstimatedCostInput(estimatedCost);
+    if (!costParsed.ok) {
+        console.error('Invalid estimated cost:', costParsed.error);
         return false;
     }
 
@@ -161,7 +202,8 @@ async function addPlanEntry(campId, startDate, endDate, status, childName = null
             start_date: startDate,
             end_date: endDate || null,
             status: status || 'want_to_book',
-            child_name: validated.name
+            child_name: validated.name,
+            estimated_cost: costParsed.value
         };
 
         const { error } = await client.from('summer_plan').insert(row);
@@ -171,11 +213,9 @@ async function addPlanEntry(campId, startDate, endDate, status, childName = null
             return false;
         }
 
-        if (validated.name) {
-            try {
-                sessionStorage.setItem(SUMMER_PLAN_LAST_CHILD_KEY, validated.name);
-            } catch (_) { /* ignore */ }
-        }
+        try {
+            sessionStorage.setItem(SUMMER_PLAN_LAST_CHILD_KEY, validated.name);
+        } catch (_) { /* ignore */ }
         return true;
     } catch (err) {
         console.error('Error in addPlanEntry:', err);
@@ -185,7 +225,7 @@ async function addPlanEntry(campId, startDate, endDate, status, childName = null
 
 /**
  * @param {string} id
- * @param {object} updates - { start_date?, end_date?, status?, child_name? }
+ * @param {object} updates - { start_date?, end_date?, status?, child_name?, estimated_cost? }
  */
 async function updatePlanEntry(id, updates) {
     const session = await getSession();
@@ -196,10 +236,16 @@ async function updatePlanEntry(id, updates) {
 
     const payload = { ...updates };
     if (updates.child_name !== undefined) {
+        if (!normalizeChildName(updates.child_name)) return false;
         const existing = await getDistinctChildNames();
         const validated = validateChildNameForAdd(updates.child_name, existing);
-        if (!validated.ok) return false;
+        if (!validated.ok || !validated.name) return false;
         payload.child_name = validated.name;
+    }
+    if (updates.estimated_cost !== undefined) {
+        const costParsed = parseEstimatedCostInput(updates.estimated_cost);
+        if (!costParsed.ok) return false;
+        payload.estimated_cost = costParsed.value;
     }
 
     try {
@@ -293,9 +339,9 @@ function dateRangeOverlapsWeek(entryStart, entryEnd, weekStart, weekEnd) {
 /**
  * @param {string} campId
  * @param {string} campName
- * @param {string|null} [preferredChildName]
+ * @param {string|{ preferredChildName?: string, campFields?: object }|null} [options]
  */
-async function openAddToPlanModal(campId, campName, preferredChildName = null) {
+async function openAddToPlanModal(campId, campName, options = null) {
     const session = await getSession();
     if (!session?.user?.id) {
         const currentPage = window.location.pathname.split('/').pop() || 'browse.html';
@@ -303,47 +349,82 @@ async function openAddToPlanModal(campId, campName, preferredChildName = null) {
         return;
     }
 
+    let preferredChildName = null;
+    let campFields = null;
+    if (typeof options === 'string') {
+        preferredChildName = options;
+    } else if (options && typeof options === 'object') {
+        preferredChildName = options.preferredChildName ?? null;
+        campFields = options.campFields ?? null;
+    }
+
     let backdrop = document.getElementById('add-to-plan-backdrop');
     let modal = document.getElementById('add-to-plan-modal');
+
+    if (!modal || !modal.querySelector('.add-to-plan-dialog')) {
+        if (backdrop) backdrop.remove();
+        if (modal) modal.remove();
+        backdrop = null;
+        modal = null;
+    }
 
     if (!backdrop || !modal) {
         backdrop = document.createElement('div');
         backdrop.id = 'add-to-plan-backdrop';
-        backdrop.className = 'feedback-backdrop';
+        backdrop.className = 'add-to-plan-backdrop';
         modal = document.createElement('div');
         modal.id = 'add-to-plan-modal';
-        modal.className = 'feedback-modal add-to-plan-modal';
+        modal.className = 'add-to-plan-modal';
         modal.setAttribute('role', 'dialog');
         modal.setAttribute('aria-labelledby', 'add-to-plan-title');
         modal.setAttribute('aria-modal', 'true');
         modal.innerHTML = `
-            <button type="button" class="feedback-close add-to-plan-close" aria-label="Close">×</button>
-            <h2 id="add-to-plan-title" class="feedback-title">Add to Summer Plan</h2>
-            <p class="add-to-plan-camp-name" id="add-to-plan-camp-name"></p>
-            <form id="add-to-plan-form" class="add-to-plan-form">
-                <div id="add-to-plan-child-field" class="add-to-plan-field"></div>
-                <div class="add-to-plan-field">
-                    <label for="add-to-plan-start">Start date *</label>
-                    <input type="date" id="add-to-plan-start" required>
-                </div>
-                <div class="add-to-plan-field">
-                    <label for="add-to-plan-end">End date (optional)</label>
-                    <input type="date" id="add-to-plan-end">
-                </div>
-                <div class="add-to-plan-field">
-                    <label>Status</label>
-                    <div class="add-to-plan-status-group">
-                        <label class="add-to-plan-status-option">
-                            <input type="radio" name="add-to-plan-status" value="booked"> Booked
-                        </label>
-                        <label class="add-to-plan-status-option">
-                            <input type="radio" name="add-to-plan-status" value="want_to_book" checked> Want to book
-                        </label>
+            <div class="add-to-plan-dialog">
+                <header class="add-to-plan-header">
+                    <div>
+                        <h2 id="add-to-plan-title" class="add-to-plan-title">Add to Summer Plan</h2>
+                        <p class="add-to-plan-camp-name" id="add-to-plan-camp-name"></p>
                     </div>
-                </div>
-                <div id="add-to-plan-error" class="add-to-plan-error" style="display:none;"></div>
-                <button type="submit" class="feedback-submit">Add to plan</button>
-            </form>
+                    <button type="button" class="add-to-plan-close" aria-label="Close">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                </header>
+                <form id="add-to-plan-form" class="add-to-plan-form">
+                    <div class="add-to-plan-body">
+                        <div id="add-to-plan-child-field" class="add-to-plan-field"></div>
+                        <div class="add-to-plan-date-row">
+                            <div class="add-to-plan-field">
+                                <label for="add-to-plan-start">Start Date</label>
+                                <input type="date" id="add-to-plan-start" required>
+                            </div>
+                            <div class="add-to-plan-field">
+                                <label for="add-to-plan-end">End Date</label>
+                                <input type="date" id="add-to-plan-end">
+                            </div>
+                        </div>
+                        <div class="add-to-plan-field">
+                            <label for="add-to-plan-cost">Estimated Cost ($)</label>
+                            <div class="add-to-plan-cost-wrap">
+                                <span class="add-to-plan-cost-prefix" aria-hidden="true">$</span>
+                                <input type="number" id="add-to-plan-cost" min="0" step="1" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="add-to-plan-field">
+                            <span class="add-to-plan-field-label">Status</span>
+                            <input type="hidden" id="add-to-plan-status" value="want_to_book">
+                            <div class="add-to-plan-status-segment" role="group" aria-label="Booking status">
+                                <button type="button" class="add-to-plan-status-btn active" data-status="want_to_book">Want to book</button>
+                                <button type="button" class="add-to-plan-status-btn" data-status="booked">Booked</button>
+                            </div>
+                        </div>
+                        <div id="add-to-plan-error" class="add-to-plan-error" style="display:none;"></div>
+                    </div>
+                    <footer class="add-to-plan-footer">
+                        <button type="submit" class="add-to-plan-submit">Add to Plan</button>
+                        <button type="button" class="add-to-plan-cancel">Cancel</button>
+                    </footer>
+                </form>
+            </div>
         `;
         document.body.appendChild(backdrop);
         document.body.appendChild(modal);
@@ -352,10 +433,12 @@ async function openAddToPlanModal(campId, campName, preferredChildName = null) {
             if (e.target === backdrop) closeAddToPlanModal();
         });
         modal.querySelector('.add-to-plan-close').addEventListener('click', closeAddToPlanModal);
+        modal.querySelector('.add-to-plan-cancel').addEventListener('click', closeAddToPlanModal);
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('active')) closeAddToPlanModal();
         });
         modal.querySelector('#add-to-plan-form').addEventListener('submit', handleAddToPlanSubmit);
+        wireAddToPlanStatusSegment(modal);
     }
 
     modal.dataset.campId = campId;
@@ -372,8 +455,12 @@ async function openAddToPlanModal(campId, campName, preferredChildName = null) {
 
     const startInput = document.getElementById('add-to-plan-start');
     const endInput = document.getElementById('add-to-plan-end');
+    const costInput = document.getElementById('add-to-plan-cost');
     if (startInput) startInput.value = '';
     if (endInput) endInput.value = '';
+    if (costInput) costInput.value = getDefaultEstimatedCostFromCampFields(campFields);
+
+    setAddToPlanStatus('want_to_book');
 
     const errEl = document.getElementById('add-to-plan-error');
     if (errEl) {
@@ -388,12 +475,32 @@ async function openAddToPlanModal(campId, campName, preferredChildName = null) {
     modal.classList.add('active');
 }
 
+function wireAddToPlanStatusSegment(modal) {
+    const hidden = modal.querySelector('#add-to-plan-status');
+    modal.querySelectorAll('.add-to-plan-status-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            setAddToPlanStatus(btn.dataset.status);
+            if (hidden) hidden.value = btn.dataset.status;
+        });
+    });
+}
+
+function setAddToPlanStatus(status) {
+    const value = status === 'booked' ? 'booked' : 'want_to_book';
+    const hidden = document.getElementById('add-to-plan-status');
+    if (hidden) hidden.value = value;
+    document.querySelectorAll('.add-to-plan-status-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.status === value);
+    });
+}
+
 async function handleAddToPlanSubmit(e) {
     e.preventDefault();
     const modal = document.getElementById('add-to-plan-modal');
     const startInput = document.getElementById('add-to-plan-start');
     const endInput = document.getElementById('add-to-plan-end');
-    const statusInput = modal?.querySelector('input[name="add-to-plan-status"]:checked');
+    const costInput = document.getElementById('add-to-plan-cost');
+    const statusInput = document.getElementById('add-to-plan-status');
     const startDate = startInput?.value;
     const endDate = endInput?.value || null;
     const status = statusInput?.value || 'want_to_book';
@@ -405,17 +512,30 @@ async function handleAddToPlanSubmit(e) {
         return;
     }
 
+    const costResult = parseEstimatedCostInput(costInput?.value);
+    if (!costResult.ok) {
+        showAddToPlanError(costResult.error || 'Please enter a valid cost.');
+        return;
+    }
+
     const resolvedSession = await getSession();
     if (!resolvedSession?.user?.id) return;
 
     const childResult = await resolveAddToPlanChildName();
-    if (!childResult.ok) {
-        showAddToPlanError(childResult.error || 'Please enter a valid child name.');
+    if (!childResult.ok || !childResult.childName) {
+        showAddToPlanError(childResult.error || 'Please select or add a child.');
         return;
     }
 
     const campIdVal = modal?.dataset.campId;
-    const ok = await addPlanEntry(campIdVal, startDate, endDate, status, childResult.childName);
+    const ok = await addPlanEntry(
+        campIdVal,
+        startDate,
+        endDate,
+        status,
+        childResult.childName,
+        costResult.value
+    );
     if (ok) {
         closeAddToPlanModal();
         if (typeof onPlanEntryAdded === 'function') onPlanEntryAdded();
@@ -435,6 +555,30 @@ function showAddToPlanError(message) {
     }
 }
 
+function getAddToPlanChildSelection() {
+    const field = document.getElementById('add-to-plan-child-field');
+    return field?.dataset.selectedChild || '';
+}
+
+function setAddToPlanChildSelection(value) {
+    const field = document.getElementById('add-to-plan-child-field');
+    if (field) field.dataset.selectedChild = value;
+    const chips = field?.querySelectorAll('.add-to-plan-child-chip');
+    chips?.forEach((chip) => {
+        const isNew = chip.dataset.childValue === '__new__';
+        const isActive = chip.dataset.childValue === value;
+        chip.classList.toggle('active', isActive);
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    const newInput = document.getElementById('add-to-plan-child-new');
+    const showNew = value === '__new__';
+    if (newInput) {
+        newInput.style.display = showNew ? 'block' : 'none';
+        newInput.required = showNew;
+        if (showNew) newInput.focus();
+    }
+}
+
 async function renderAddToPlanChildField(modal) {
     const container = document.getElementById('add-to-plan-child-field');
     if (!container) return;
@@ -443,67 +587,63 @@ async function renderAddToPlanChildField(modal) {
     const preferred = modal?.dataset.preferredChildName || '';
     const preferredInList = names.some(n => n.toLowerCase() === preferred.toLowerCase());
 
-    const nameOptions = names
-        .map(n => {
-            const sel = preferredInList && n.toLowerCase() === preferred.toLowerCase() ? ' selected' : '';
-            return `<option value="${escapeHtml(n)}"${sel}>${escapeHtml(n)}</option>`;
-        })
-        .join('');
+    let defaultSelection = '__new__';
+    if (names.length === 1 && !preferred) {
+        defaultSelection = names[0];
+    } else if (preferredInList) {
+        defaultSelection = names.find(n => n.toLowerCase() === preferred.toLowerCase());
+    } else if (names.length > 0 && !preferred) {
+        defaultSelection = names[0];
+    }
 
-    const defaultPick = !preferredInList && preferred ? '__new__' : (names.length === 1 && !preferred ? names[0] : '');
+    const chipsHtml = names.map((n) => {
+        const safeAttr = n.replace(/"/g, '&quot;');
+        return `<button type="button" class="add-to-plan-child-chip" data-child-value="${safeAttr}" aria-pressed="false">${escapeHtml(n)}</button>`;
+    }).join('');
 
     container.innerHTML = `
-        <label for="add-to-plan-child-select">Child</label>
-        <select id="add-to-plan-child-select">
-            <option value="">Unassigned</option>
-            ${nameOptions}
-            <option value="__new__"${defaultPick === '__new__' ? ' selected' : ''}>Add new name…</option>
-        </select>
+        <span class="add-to-plan-field-label">Select Child</span>
+        <div class="add-to-plan-child-chips" role="group" aria-label="Select child">
+            ${chipsHtml}
+            <button type="button" class="add-to-plan-child-chip add-to-plan-child-chip-new" data-child-value="__new__" aria-pressed="false">
+                <span class="material-symbols-outlined" aria-hidden="true">add</span> Add New
+            </button>
+        </div>
         <input type="text" id="add-to-plan-child-new" maxlength="80" placeholder="e.g. Emma" class="add-to-plan-child-new" style="display:none;">
         <p class="add-to-plan-field-hint">Up to ${MAX_CHILD_NAMES} different names on your plan.</p>
     `;
 
-    const select = document.getElementById('add-to-plan-child-select');
     const newInput = document.getElementById('add-to-plan-child-new');
-
-    if (select && defaultPick && defaultPick !== '__new__') {
-        select.value = defaultPick;
+    if (newInput && defaultSelection === '__new__' && preferred && !preferredInList) {
+        newInput.value = preferred;
     }
 
-    if (select && newInput) {
-        const toggleNew = () => {
-            const isNew = select.value === '__new__';
-            newInput.style.display = isNew ? 'block' : 'none';
-            newInput.required = isNew;
-            if (isNew) {
-                newInput.value = preferredInList ? '' : (preferred || '');
-                newInput.focus();
-            }
-        };
-        select.addEventListener('change', toggleNew);
-        toggleNew();
-    }
+    container.querySelectorAll('.add-to-plan-child-chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+            setAddToPlanChildSelection(chip.dataset.childValue);
+        });
+    });
+
+    setAddToPlanChildSelection(defaultSelection);
 }
 
 async function resolveAddToPlanChildName() {
-    const select = document.getElementById('add-to-plan-child-select');
+    const selection = getAddToPlanChildSelection();
     const newInput = document.getElementById('add-to-plan-child-new');
-    if (!select) return { ok: true, childName: null };
 
-    if (select.value === '') {
-        return { ok: true, childName: null };
-    }
-
-    if (select.value === '__new__') {
+    if (!selection || selection === '__new__') {
         if (!normalizeChildName(newInput?.value)) {
-            return { ok: false, error: 'Please enter a name for the new child.' };
+            return { ok: false, error: 'Please enter a name for the child.' };
         }
         const existing = await getDistinctChildNames();
         const validated = validateChildNameForAdd(newInput?.value, existing);
-        return { ok: validated.ok, error: validated.error, childName: validated.name ?? null };
+        if (!validated.ok || !validated.name) {
+            return { ok: false, error: validated.error || 'Please enter a valid child name.' };
+        }
+        return { ok: true, childName: validated.name };
     }
 
-    return { ok: true, childName: select.value };
+    return { ok: true, childName: selection };
 }
 
 function closeAddToPlanModal() {
@@ -512,4 +652,10 @@ function closeAddToPlanModal() {
     if (backdrop) backdrop.classList.remove('active');
     if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
+}
+
+function formatEstimatedCostDisplay(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '$0';
+    return num === 0 ? '$0' : `$${num.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }

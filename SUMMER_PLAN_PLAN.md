@@ -128,6 +128,21 @@ alter table public.summer_plan
 
 See `supabase/migrations/20260529120000_add_child_name.sql` and `MULTI_KID_SUMMER_PLAN_PLAN.md`.
 
+### Estimated cost per entry
+
+Run after deploying code that writes `estimated_cost` (Add to Plan modal). In Supabase **SQL Editor**:
+
+```sql
+alter table public.summer_plan
+  add column if not exists estimated_cost numeric not null default 0;
+
+update public.summer_plan
+  set estimated_cost = 0
+  where estimated_cost is null;
+```
+
+Or apply `supabase/migrations/20260703190000_add_estimated_cost.sql`. Blank cost in the UI saves as `0` (not null) so future totals can use `SUM(estimated_cost)`.
+
 ## File Summary
 
 | File | Action |

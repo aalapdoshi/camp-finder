@@ -35,8 +35,7 @@ function filterEntries(entries, filter) {
 
 function buildChildFilterOptions(entries) {
     const names = distinctChildNamesFromEntries(entries);
-    const hasUnassigned = entries.some(e => !normalizeChildName(e.child_name));
-    return { names, hasUnassigned };
+    return { names };
 }
 
 async function initSummerPlanPage() {
@@ -110,11 +109,10 @@ function renderChildFilters(entries) {
     const container = document.getElementById('summer-plan-child-filters');
     if (!container) return;
 
-    const { names, hasUnassigned } = buildChildFilterOptions(entries);
+    const { names } = buildChildFilterOptions(entries);
     const items = [
         { value: 'all', label: navLabelForFilter('all') },
-        ...names.map((n, i) => ({ value: n, label: navLabelForFilter(n, n), childIndex: i })),
-        ...(hasUnassigned ? [{ value: 'unassigned', label: navLabelForFilter('unassigned') }] : [])
+        ...names.map((n, i) => ({ value: n, label: navLabelForFilter(n, n), childIndex: i }))
     ];
 
     container.innerHTML = '';
@@ -196,6 +194,7 @@ function renderList(entries, campById, childNames) {
                 <input type="date" class="summer-plan-edit-end" value="${entry.end_date || ''}" data-entry-id="${entry.id}">
             </td>
             <td class="summer-plan-cell-week">${weekStr}</td>
+            <td class="summer-plan-cell-cost">${formatEstimatedCostDisplay(entry.estimated_cost)}</td>
             <td>
                 <select class="summer-plan-edit-status" data-entry-id="${entry.id}">
                     <option value="booked" ${entry.status === 'booked' ? 'selected' : ''}>Booked</option>
@@ -218,7 +217,7 @@ function renderList(entries, campById, childNames) {
         childInput.type = 'text';
         childInput.className = 'summer-plan-edit-child';
         childInput.maxLength = 80;
-        childInput.placeholder = 'Unassigned';
+        childInput.placeholder = 'Required';
         childInput.value = normalizeChildName(entry.child_name);
         childInput.dataset.entryId = entry.id;
         childInput.setAttribute('list', 'summer-plan-child-names-dl');
@@ -288,6 +287,12 @@ async function saveRowFromDom(row, options = {}) {
         status: statusSelect?.value || 'want_to_book',
         child_name: childInput?.value ?? null
     };
+
+    if (!normalizeChildName(updates.child_name)) {
+        alert('Child name is required.');
+        if (childInput) childInput.value = row.dataset.childName || '';
+        return false;
+    }
 
     const ok = await updatePlanEntry(id, updates);
     if (!ok && childInput) {

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Browse Summer Camps | Organized Joy</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#d3e4fe",
+                        "on-tertiary-container": "#ffeedd",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-surface": "#213145",
+                        "secondary": "#006a61",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "secondary-fixed-dim": "#6bd8cb",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-bright": "#f8f9ff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-secondary-fixed-variant": "#005049",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#89f5e7",
+                        "on-primary-fixed": "#00174b",
+                        "on-surface-variant": "#434655",
+                        "surface-tint": "#0053db",
+                        "on-secondary-fixed": "#00201d",
+                        "error": "#ba1a1a",
+                        "outline": "#737686",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary-container": "#eeefff",
+                        "primary-container": "#2563eb",
+                        "background": "#f8f9ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "secondary-container": "#86f2e4",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "tertiary": "#784b00",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-high": "#dce9ff",
+                        "primary": "#004ac6",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#996100",
+                        "on-surface": "#0b1c30",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#006f66",
+                        "on-background": "#0b1c30",
+                        "surface-dim": "#cbdbf5",
+                        "surface": "#f8f9ff",
+                        "primary-fixed": "#dbe1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "stack-md": "1.5rem",
+                        "container-max": "1200px",
+                        "stack-lg": "3rem",
+                        "stack-sm": "0.5rem",
+                        "gutter": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "display-lg-mobile": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .card-accent-blue { border-left: 4px solid #004ac6; }
+        .card-accent-green { border-left: 4px solid #006a61; }
+        body { background-color: #f8f9ff; }
+        .glass-sidebar {
+            backdrop-filter: blur(12px);
+            background: rgba(239, 244, 255, 0.8);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background">
+<!-- Top Navigation Bar -->
+<nav class="bg-surface sticky top-0 z-50 border-b border-outline-variant">
+<div class="flex justify-between items-center h-16 px-gutter max-w-container-max mx-auto">
+<div class="text-headline-md font-headline-md text-primary">Browse Summer Camps</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md" href="#">Directory</a>
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors" href="#">Favorites</a>
+<a class="text-on-surface-variant font-body-md hover:text-primary transition-colors" href="#">Resources</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary p-2 hover:bg-surface-container rounded-full transition-all">notifications</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a friendly parent or guardian, softly lit in a modern interior setting with a blurred background of a cozy home office. The lighting is warm and natural, emphasizing a high-quality, approachable lifestyle aesthetic consistent with organized joy and family-focused planning." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT06pezG1ksmE97oKRzihZw5IcsallLVR-VVZ4Kg1TMpgk2X3IfXpzgP_QuJqLY_3R5Mcb4iYa9lVK4-G1IGo3JCRHafORbMITTnlOHfwhiyuvR47IfZTTC9ChPepKhbYCYM_oczvUlBcwEr5i9iz1n_EqEEYQIciK_4tjhRAXReKnOX-UOoyLaiHhpADFvGhYWmz2tEi6nOEnDU7SERgmoM0GDbpEIKxmZpWaLw6xb6xTm5vXUbMUav-M6al0_j_Je4vMheKGhGk"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Grid Container -->
+<main class="max-w-container-max mx-auto px-gutter py-stack-md">
+<div class="flex flex-col md:flex-row gap-8">
+<!-- Sidebar Filters -->
+<aside class="w-full md:w-80 flex-shrink-0">
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-6 sticky top-20 shadow-sm flex flex-col gap-6">
+<div>
+<h2 class="font-headline-sm text-on-surface mb-1">Filters</h2>
+<p class="font-label-md text-on-surface-variant">Refine your camp results</p>
+</div>
+<!-- Search Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface">Search camps</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-full border border-outline-variant bg-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-body-md" placeholder="Search by name, interests..." type="text"/>
+</div>
+</div>
+<!-- Filter Groups -->
+<div class="flex flex-col gap-5">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">child_care</span> Child's age
+                            </label>
+<input class="w-full px-4 py-2 rounded-full border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md" placeholder="Any" type="number"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">payments</span> Max price per week ($)
+                            </label>
+<input class="w-full px-4 py-2 rounded-full border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md" placeholder="No limit" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">distance</span> City
+                            </label>
+<select class="w-full px-4 py-2 rounded-full border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md appearance-none">
+<option>All cities</option>
+<option>Ann Arbor</option>
+<option>Detroit</option>
+<option>Grand Rapids</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">category</span> Category
+                            </label>
+<select class="w-full px-4 py-2 rounded-full border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md appearance-none">
+<option>All categories</option>
+<option>Sports</option>
+<option>STEM</option>
+<option>Arts &amp; Crafts</option>
+</select>
+</div>
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="relative flex items-center">
+<input class="peer h-5 w-5 rounded border-outline-variant text-primary focus:ring-primary transition-all" type="checkbox"/>
+</div>
+<span class="font-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">With after care</span>
+</label>
+</div>
+<button class="w-full py-3 rounded-full border border-primary text-primary font-bold hover:bg-primary-fixed transition-colors active:scale-95 duration-150">
+                        Reset Filters
+                    </button>
+</div>
+</aside>
+<!-- Results Section -->
+<section class="flex-grow">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-sm text-on-surface-variant">110 camps found</h3>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="font-label-md">Sort by:</span>
+<select class="bg-transparent border-none font-bold text-primary focus:ring-0 cursor-pointer">
+<option>Recommended</option>
+<option>Price: Low to High</option>
+<option>Distance</option>
+</select>
+</div>
+</div>
+<!-- Bento Grid / Card Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+<!-- Camp Card 1 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all card-accent-blue flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant outdoor swimming pool on a clear sunny day with crystalline blue water. In the background, group of happy children in colorful swimwear are receiving instructions from a professional coach. The scene is bright and airy with high-key lighting, emphasizing a fun and safe summer camp environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpCjR1fLgKDfZhdPuREG30qM5fJy7Eo3vOXCpDWhyYPXBvCsHxh2Pgx0WZY2yP-AiZzQpbGlXPKXWxYunelX6-uXsfxtMqjIDWhKpbwvyHdx9PY9jbnNiCk-8F36bj2od5xWnzkz9wSm4WERHQfDdU8w0DC_VeKZyLDnMH5v69aZFQd5uA8S6WYmLuA-8tYP5U0I8ZWAMeLbHxrlnIfy6tXPic2hSMHaLoYDVrjn-IlxuO24ACRkiMPkABoYYbBTghxLvFLE3s7Hs"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-primary text-on-primary text-[10px] uppercase font-bold px-3 py-1 rounded-sm">Sports</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] uppercase font-bold px-3 py-1 rounded-sm">Open Now</span>
+</div>
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-error hover:bg-white transition-colors shadow-sm">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<h4 class="font-headline-md text-on-surface mb-4">Michigan Swimming Camps</h4>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">groups</span>
+<span class="font-body-md">Ages 9–18</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-body-md">$860+ (lunch and no-lunch options)</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span class="font-body-md">Ann Arbor</span>
+</div>
+</div>
+<div class="mt-auto flex gap-3">
+<button class="flex-grow py-3 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm">Add to Plan</button>
+<button class="px-6 py-3 rounded-full border border-outline-variant text-on-surface font-bold hover:bg-surface-variant transition-all">Details</button>
+</div>
+</div>
+</div>
+<!-- Camp Card 2 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all card-accent-blue flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A focused group of children in white karate gi uniforms practicing martial arts in a bright, modern dojo. The floor is covered with clean blue mats, and large windows let in soft, diffused daylight. The style is minimalist and clean, capturing a moment of discipline and 'organized joy' in a professional learning setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuASuMyT46v3ALCk4OIc7E7piRgIatP5vTk-Wh1Ns6jzaLsMMbQcsvtbQITOUjloG18QM6Wh795Jso4iqv9jZgUtaye6z7Quw_KTmguwQSwtKMTvLEIOFD1J4jbXdW0pu1ZeuXfkbHT1LPS5KHHzoS27dFL0fpPvZbPXxanwZYfD-RPjlajM9oyF7KP35PCZRegIJLe6Tvpfoa3zq36wHrcUiDrStc-rfadIHaVxijgHU244cecQJc5OqaKlK3ihhMbKGavbo84a_Fo"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-primary text-on-primary text-[10px] uppercase font-bold px-3 py-1 rounded-sm">Sports</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] uppercase font-bold px-3 py-1 rounded-sm">Open Now</span>
+</div>
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-outline hover:text-error hover:bg-white transition-colors shadow-sm">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<h4 class="font-headline-md text-on-surface mb-4">Huron Valley Aikikai</h4>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">groups</span>
+<span class="font-body-md">Ages 5–12</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-body-md">$250–$300/week</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span class="font-body-md">Ann Arbor</span>
+</div>
+</div>
+<div class="mt-auto flex gap-3">
+<button class="flex-grow py-3 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm">Add to Plan</button>
+<button class="px-6 py-3 rounded-full border border-outline-variant text-on-surface font-bold hover:bg-surface-variant transition-all">Details</button>
+</div>
+</div>
+</div>
+<!-- Camp Card 3 -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all card-accent-green flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A lush, green YMCA camp setting with a rustic wooden lodge in the background and a large open field. A group of children are sitting in a circle on the grass, engaged in a group activity. The lighting is the golden hour of late afternoon, creating long shadows and a warm, nostalgic atmosphere of summer adventure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5io13csbtvDVvMDNWOIxno6v65FfzCB0mDoRI3Yq1wmbnkCUGKkEFfCWgHEzTVtAsLVRBKOlEkb_F366E0Yb0uKPx4GEwCmWfo9WATfd9GwrBFQA0_RX4WRFxAsLujsGAAKEI0YnTH8MkJK32wVPdA1TJbQBDSCqHBZpMd9FmdCkvwOwOsv8g7PxOf_xazBu9RmiGj81HCq27TlY49LBom_Oj9b6-K2tmA2g12XW2pG6EdV9jBRsWDG6nLpp3K7zAxajYfQmjgfQ"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-secondary text-on-secondary text-[10px] uppercase font-bold px-3 py-1 rounded-sm">General</span>
+<span class="bg-surface-variant text-on-surface-variant text-[10px] uppercase font-bold px-3 py-1 rounded-sm">Not Updated</span>
+</div>
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-outline hover:text-error hover:bg-white transition-colors shadow-sm">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<h4 class="font-headline-md text-on-surface mb-4">YMCA Camp Greenhills</h4>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">groups</span>
+<span class="font-body-md">Ages 5–11</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-body-md">Contact for pricing</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span class="font-body-md">Pinckney</span>
+</div>
+</div>
+<div class="mt-auto flex gap-3">
+<button class="flex-grow py-3 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm">Add to Plan</button>
+<button class="px-6 py-3 rounded-full border border-outline-variant text-on-surface font-bold hover:bg-surface-variant transition-all">Details</button>
+</div>
+</div>
+</div>
+<!-- Camp Card 4 (New entry) -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all card-accent-green flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A brightly colored science lab designed for kids, filled with microscopes, beakers, and colorful chemical models. A group of excited children are wearing safety goggles and white lab coats, watching a safe and glowing experiment. The room is modern and filled with soft, high-quality studio lighting, emphasizing a high-end educational experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCmXkaxBk7SxX0ozj10cNRhIIZ3bEqaYK_1PfnOlm-w309mY2abmCZQFAEWpAUiM-TfBQ1s0o16b_CXhtwUoMayMDKYGTMd4oksXQr12XPIjAtlDIPeSVrdHh23ySv6UF86Yl6pIrTapP6Q552QjWc-Yn57M9vXBB-OvxPSht0lJkDGAHwR8PZzpjzKJNU-eUoiJj9tEcY4UzA3LxWCmMngaddCPszihgU57qeJYCWvTAt8YevAvPzW7UhA58REttV28n12_IVJ-Q"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-secondary text-on-secondary text-[10px] uppercase font-bold px-3 py-1 rounded-sm">STEM</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] uppercase font-bold px-3 py-1 rounded-sm">Open Now</span>
+</div>
+<button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-outline hover:text-error hover:bg-white transition-colors shadow-sm">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<h4 class="font-headline-md text-on-surface mb-4">Discovery Lab Science</h4>
+<div class="space-y-2 mb-6">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">groups</span>
+<span class="font-body-md">Ages 7–14</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-body-md">$420/week</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span class="font-body-md">Grand Rapids</span>
+</div>
+</div>
+<div class="mt-auto flex gap-3">
+<button class="flex-grow py-3 rounded-full bg-primary text-white font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm">Add to Plan</button>
+<button class="px-6 py-3 rounded-full border border-outline-variant text-on-surface font-bold hover:bg-surface-variant transition-all">Details</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-stack-lg flex justify-center items-center gap-4">
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-primary text-white font-bold">1</button>
+<button class="w-10 h-10 rounded-full border border-outline-variant hover:bg-surface-container transition-colors">2</button>
+<button class="w-10 h-10 rounded-full border border-outline-variant hover:bg-surface-container transition-colors">3</button>
+<span class="px-2 self-center">...</span>
+<button class="w-10 h-10 rounded-full border border-outline-variant hover:bg-surface-container transition-colors">11</button>
+</div>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-bright border-t border-outline-variant mt-stack-lg">
+<div class="flex flex-col md:flex-row justify-between items-center py-stack-md px-gutter max-w-container-max mx-auto">
+<div class="font-headline-sm text-on-surface-variant mb-4 md:mb-0">Organized Joy</div>
+<div class="text-body-md text-on-surface-variant text-center md:text-left mb-4 md:mb-0">
+                © 2024 Organized Joy Summer Camps. All rights reserved.
+            </div>
+<div class="flex gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+<!-- FAB -->
+<button class="fixed bottom-8 right-8 bg-primary text-white flex items-center gap-3 px-6 py-4 rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 z-50">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-bold">Feedback</span>
+</button>
+<script>
+        // Simple Micro-interaction for filter inputs
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('focus', () => {
+                el.parentElement.classList.add('scale-[1.02]');
+                el.parentElement.classList.add('transition-transform');
+            });
+            el.addEventListener('blur', () => {
+                el.parentElement.classList.remove('scale-[1.02]');
+            });
+        });
+
+        // Toggle Favorites logic
+        document.querySelectorAll('button span.material-symbols-outlined').forEach(icon => {
+            if (icon.textContent === 'favorite') {
+                icon.closest('button').addEventListener('click', function() {
+                    const isFilled = this.querySelector('span').style.fontVariationSettings.includes("'FILL' 1");
+                    this.querySelector('span').style.fontVariationSettings = isFilled ? "'FILL' 0" : "'FILL' 1";
+                });
+            }
+        });
+    </script>
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-on-background/40 backdrop-blur-sm" id="add-to-plan-modal">
+<div class="bg-surface-container-lowest w-full max-w-lg rounded-xl shadow-xl overflow-hidden flex flex-col">
+<!-- Modal Header -->
+<div class="p-6 border-b border-outline-variant flex justify-between items-start">
+<div>
+<h2 class="font-headline-md text-on-surface">Add to Summer Plan</h2>
+<p class="text-body-md text-on-surface-variant">Michigan Swimming Camps</p>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-variant p-2 rounded-full transition-colors" onclick="document.getElementById('add-to-plan-modal').remove()">close</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
+<!-- Child Selection -->
+<div class="space-y-3">
+<label class="font-label-md text-on-surface">Select Child</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full bg-primary text-on-primary font-label-md transition-all">Leo</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-variant font-label-md transition-all">Maya</button>
+<button class="px-4 py-2 rounded-full border border-primary border-dashed text-primary flex items-center gap-1 font-label-md hover:bg-primary-fixed transition-all">
+<span class="material-symbols-outlined text-sm">add</span> Add New
+          </button>
+</div>
+</div>
+<!-- Date Range -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-md text-on-surface">Start Date</label>
+<input class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md" type="date"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface">End Date</label>
+<input class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md" type="date"/>
+</div>
+</div>
+<!-- Cost Input -->
+<div class="space-y-2">
+<label class="font-label-md text-on-surface">Estimated Cost ($)</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
+<input class="w-full pl-8 pr-4 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-primary outline-none text-body-md" placeholder="860" type="number"/>
+</div>
+</div>
+<!-- Status Selection -->
+<div class="space-y-3">
+<label class="font-label-md text-on-surface">Status</label>
+<div class="flex p-1 bg-surface-container-low rounded-full border border-outline-variant">
+<button class="flex-1 py-2 rounded-full bg-white shadow-sm text-primary font-bold text-body-md transition-all">Want to book</button>
+<button class="flex-1 py-2 rounded-full text-on-surface-variant font-body-md hover:bg-surface-variant transition-all">Booked</button>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-6 bg-surface-container-low flex gap-3">
+<button class="flex-grow py-3 rounded-full bg-primary text-on-primary font-bold hover:brightness-110 active:scale-95 transition-all shadow-sm">Add to Plan</button>
+<button class="px-8 py-3 rounded-full border border-outline-variant text-on-surface font-bold hover:bg-surface-variant transition-all" onclick="document.getElementById('add-to-plan-modal').remove()">Cancel</button>
+</div>
+</div>
+</div></body></html>
