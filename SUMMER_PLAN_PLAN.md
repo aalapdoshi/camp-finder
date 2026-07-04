@@ -150,6 +150,21 @@ update public.summer_plan
 
 Or apply `supabase/migrations/20260703190000_add_estimated_cost.sql`. Blank cost in the UI saves as `0` (not null) so future totals can use `SUM(estimated_cost)`.
 
+### Notes per entry (`notes`)
+
+Optional free-text note per plan row (max 500 characters in UI; blank saves as `null`). Set in Add to Plan modal or edited later from Summer Plan list/calendar.
+
+Run before testing notes in production. In Supabase **SQL Editor**:
+
+```sql
+alter table public.summer_plan
+  add column if not exists notes text;
+```
+
+Or apply `supabase/migrations/20260703220000_add_notes.sql`.
+
+**If `summer_plan` does not exist yet**, run the full table setup in the **Supabase Setup (Manual)** section above first (create table, RLS, policies), then run the `child_name`, `estimated_cost`, and `notes` migrations in order.
+
 ## File Summary
 
 | File | Action |

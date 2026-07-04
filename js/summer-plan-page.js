@@ -90,6 +90,7 @@ function refreshViews() {
     renderCalendar(filtered, cachedCampById);
     renderCostTotal(filtered, activeChildFilter);
     wireRemoveButtons();
+    wireNoteButtons();
 }
 
 function sumEstimatedCost(entries) {
@@ -213,6 +214,44 @@ function ensureChildNamesDatalist(names) {
     dl.innerHTML = names.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
 }
 
+function renderListNotesCell(entry) {
+    const note = getEntryNotes(entry);
+    const preview = note ? truncatePlanNote(note, 60) : '';
+    const linkLabel = note ? 'Edit note' : 'Add note';
+    const previewHtml = note
+        ? `<p class="summer-plan-note-preview" title="${escapeHtml(note)}">${escapeHtml(preview)}</p>`
+        : '';
+    return `
+        <td class="summer-plan-cell-notes">
+            ${previewHtml}
+            <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${linkLabel}</button>
+        </td>
+    `;
+}
+
+function openNoteModalForEntry(entry) {
+    if (!entry) return;
+    const camp = cachedCampById?.get(entry.camp_id);
+    const campName = camp?.fields?.['Camp Name'] ?? 'Unknown camp';
+    openPlanNoteModal({
+        entryId: entry.id,
+        campName,
+        childName: entry.child_name,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+        currentNote: getEntryNotes(entry)
+    });
+}
+
+function wireNoteButtons() {
+    document.querySelectorAll('.summer-plan-note-link').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const entry = allEntries.find((e) => e.id === btn.dataset.entryId);
+            openNoteModalForEntry(entry);
+        });
+    });
+}
+
 function renderList(entries, campById, childNames) {
     const tbody = document.getElementById('summer-plan-list-body');
     if (!tbody) return;
@@ -231,6 +270,7 @@ function renderList(entries, campById, childNames) {
         tr.className = isUnavailable ? 'summer-plan-row-unavailable' : '';
 
         const weekStr = formatWeekOf(entry.start_date);
+        const notesCellHtml = renderListNotesCell(entry);
 
         tr.innerHTML = `
             <td class="summer-plan-cell-camp">
@@ -258,6 +298,7 @@ function renderList(entries, campById, childNames) {
                     <option value="want_to_book" ${entry.status === 'want_to_book' ? 'selected' : ''}>Want to book</option>
                 </select>
             </td>
+            ${notesCellHtml}
             <td>
                 <button type="button" class="btn-remove-plan btn-secondary" data-entry-id="${entry.id}">Remove</button>
             </td>
@@ -418,6 +459,14 @@ function renderCalendarWeekCard(entry, campById) {
     const statusLabel = entry.status === 'booked' ? 'Booked' : 'Want to Book';
     const datesLabel = formatDateRange(entry.start_date, entry.end_date);
     const accent = getStatusAccentColor(entry.status);
+    const note = getEntryNotes(entry);
+    const notePreview = note ? truncatePlanNote(note, 80) : '';
+    const noteLinkLabel = note ? 'Edit note' : 'Add note';
+    const noteBlock = `
+        <p class="summer-plan-week-card-note">
+            ${note ? `<span class="summer-plan-week-card-note-preview" title="${escapeHtml(note)}">${escapeHtml(notePreview)}</span> ` : ''}
+            <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${noteLinkLabel}</button>
+        </p>`;
     const campLink = isUnavailable
         ? `<span class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</span>`
         : `<a href="camp-detail.html?id=${entry.camp_id}" class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</a>`;
@@ -433,6 +482,7 @@ function renderCalendarWeekCard(entry, campById) {
             <h4 class="summer-plan-week-card-camp">${campLink}</h4>
             <p class="summer-plan-week-card-dates">${escapeHtml(datesLabel)}</p>
             <p class="summer-plan-week-card-cost">${formatEntryEstimatedCost(entry)}</p>
+            ${noteBlock}
         </div>
     </article>`;
 }
@@ -511,3 +561,7 @@ if (document.readyState === 'loading') {
 } else {
     initSummerPlanPage();
 }
+
+onPlanNoteSaved = async function onPlanNoteSavedHandler() {
+    await afterRowSaved();
+};

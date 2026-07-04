@@ -2,6 +2,7 @@
 // Requires: auth.js (initSupabase, getSession), Supabase client
 
 const MAX_CHILD_NAMES = 6;
+const MAX_PLAN_NOTE_LENGTH = 500;
 const SUMMER_PLAN_LAST_CHILD_KEY = 'summerPlanLastChildName';
 
 const CHILD_COLORS = [
@@ -123,6 +124,41 @@ function getDefaultEstimatedCostFromCampFields(_fields) {
 }
 
 /**
+ * @param {string|number|null|undefined} value
+ * @returns {{ ok: boolean, error?: string, value?: string|null }}
+ */
+function parseNotesInput(value) {
+    const str = value == null ? '' : String(value).trim();
+    if (str === '') return { ok: true, value: null };
+    if (str.length > MAX_PLAN_NOTE_LENGTH) {
+        return { ok: false, error: `Note must be ${MAX_PLAN_NOTE_LENGTH} characters or fewer.` };
+    }
+    return { ok: true, value: str };
+}
+
+/**
+ * @param {{ notes?: string|null }} entry
+ * @returns {string|null}
+ */
+function getEntryNotes(entry) {
+    const n = entry?.notes;
+    if (n == null || String(n).trim() === '') return null;
+    return String(n).trim();
+}
+
+/**
+ * @param {string|null|undefined} text
+ * @param {number} [maxLen=80]
+ * @returns {string}
+ */
+function truncatePlanNote(text, maxLen = 80) {
+    if (!text) return '';
+    const t = String(text);
+    if (t.length <= maxLen) return t;
+    return t.slice(0, maxLen - 1) + '…';
+}
+
+/**
  * Get plan entries for the current user.
  * @param {{ childName?: string }} [options] - omitted/'all' = all; 'unassigned' = null names; else exact name
  */
@@ -176,8 +212,9 @@ async function getDistinctChildNames() {
  * @param {string} status
  * @param {string} childName - required non-empty
  * @param {number} [estimatedCost=0]
+ * @param {string|null} [notes=null]
  */
-async function addPlanEntry(campId, startDate, endDate, status, childName, estimatedCost = 0) {
+async function addPlanEntry(campId, startDate, endDate, status, childName, estimatedCost = 0, notes = null) {
     const session = await getSession();
     if (!session?.user?.id) return false;
 
@@ -197,6 +234,12 @@ async function addPlanEntry(campId, startDate, endDate, status, childName, estim
         return false;
     }
 
+    const notesParsed = parseNotesInput(notes);
+    if (!notesParsed.ok) {
+        console.error('Invalid note:', notesParsed.error);
+        return false;
+    }
+
     try {
         const row = {
             user_id: session.user.id,
@@ -205,7 +248,8 @@ async function addPlanEntry(campId, startDate, endDate, status, childName, estim
             end_date: endDate || null,
             status: status || 'want_to_book',
             child_name: validated.name,
-            estimated_cost: costParsed.value
+            estimated_cost: costParsed.value,
+            notes: notesParsed.value
         };
 
         const { error } = await client.from('summer_plan').insert(row);
@@ -227,7 +271,7 @@ async function addPlanEntry(campId, startDate, endDate, status, childName, estim
 
 /**
  * @param {string} id
- * @param {object} updates - { start_date?, end_date?, status?, child_name?, estimated_cost? }
+ * @param {object} updates - { start_date?, end_date?, status?, child_name?, estimated_cost?, notes? }
  */
 async function updatePlanEntry(id, updates) {
     const session = await getSession();
@@ -248,6 +292,11 @@ async function updatePlanEntry(id, updates) {
         const costParsed = parseEstimatedCostInput(updates.estimated_cost);
         if (!costParsed.ok) return false;
         payload.estimated_cost = costParsed.value;
+    }
+    if (updates.notes !== undefined) {
+        const notesParsed = parseNotesInput(updates.notes);
+        if (!notesParsed.ok) return false;
+        payload.notes = notesParsed.value;
     }
 
     try {
@@ -413,6 +462,11 @@ async function openAddToPlanModal(campId, campName, options = null) {
                             <p class="add-to-plan-field-hint">One total for this camp on your plan — not per day or week. This amount is shown on the calendar, list, and cost total.</p>
                         </div>
                         <div class="add-to-plan-field">
+                            <label for="add-to-plan-notes">Note (optional)</label>
+                            <textarea id="add-to-plan-notes" class="add-to-plan-notes" maxlength="${MAX_PLAN_NOTE_LENGTH}" rows="3" placeholder="e.g. registration reminder, carpool"></textarea>
+                            <p class="add-to-plan-field-hint">Up to ${MAX_PLAN_NOTE_LENGTH} characters.</p>
+                        </div>
+                        <div class="add-to-plan-field">
                             <span class="add-to-plan-field-label">Status</span>
                             <input type="hidden" id="add-to-plan-status" value="want_to_book">
                             <div class="add-to-plan-status-segment" role="group" aria-label="Booking status">
@@ -459,9 +513,11 @@ async function openAddToPlanModal(campId, campName, options = null) {
     const startInput = document.getElementById('add-to-plan-start');
     const endInput = document.getElementById('add-to-plan-end');
     const costInput = document.getElementById('add-to-plan-cost');
+    const notesInput = document.getElementById('add-to-plan-notes');
     if (startInput) startInput.value = '';
     if (endInput) endInput.value = '';
     if (costInput) costInput.value = getDefaultEstimatedCostFromCampFields(campFields);
+    if (notesInput) notesInput.value = '';
 
     setAddToPlanStatus('want_to_book');
 
@@ -503,6 +559,7 @@ async function handleAddToPlanSubmit(e) {
     const startInput = document.getElementById('add-to-plan-start');
     const endInput = document.getElementById('add-to-plan-end');
     const costInput = document.getElementById('add-to-plan-cost');
+    const notesInput = document.getElementById('add-to-plan-notes');
     const statusInput = document.getElementById('add-to-plan-status');
     const startDate = startInput?.value;
     const endDate = endInput?.value || null;
@@ -518,6 +575,12 @@ async function handleAddToPlanSubmit(e) {
     const costResult = parseEstimatedCostInput(costInput?.value);
     if (!costResult.ok) {
         showAddToPlanError(costResult.error || 'Please enter a valid cost.');
+        return;
+    }
+
+    const notesResult = parseNotesInput(notesInput?.value);
+    if (!notesResult.ok) {
+        showAddToPlanError(notesResult.error || 'Please shorten your note.');
         return;
     }
 
@@ -537,7 +600,8 @@ async function handleAddToPlanSubmit(e) {
         endDate,
         status,
         childResult.childName,
-        costResult.value
+        costResult.value,
+        notesResult.value
     );
     if (ok) {
         closeAddToPlanModal();
@@ -666,4 +730,151 @@ function formatEstimatedCostDisplay(value) {
 /** Format saved plan-entry cost for list/calendar display. */
 function formatEntryEstimatedCost(entry) {
     return formatEstimatedCostDisplay(getEntryEstimatedCost(entry));
+}
+
+/**
+ * @param {{
+ *   entryId: string,
+ *   campName: string,
+ *   childName?: string,
+ *   startDate?: string,
+ *   endDate?: string|null,
+ *   currentNote?: string|null
+ * }} options
+ */
+function openPlanNoteModal(options) {
+    const {
+        entryId,
+        campName,
+        childName = '',
+        startDate = '',
+        endDate = null,
+        currentNote = null
+    } = options || {};
+
+    if (!entryId) return;
+
+    let backdrop = document.getElementById('plan-note-backdrop');
+    let modal = document.getElementById('plan-note-modal');
+
+    if (!modal || !modal.querySelector('.plan-note-dialog')) {
+        if (backdrop) backdrop.remove();
+        if (modal) modal.remove();
+        backdrop = null;
+        modal = null;
+    }
+
+    if (!backdrop || !modal) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'plan-note-backdrop';
+        backdrop.className = 'plan-note-backdrop';
+        modal = document.createElement('div');
+        modal.id = 'plan-note-modal';
+        modal.className = 'plan-note-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-labelledby', 'plan-note-title');
+        modal.setAttribute('aria-modal', 'true');
+        modal.innerHTML = `
+            <div class="plan-note-dialog">
+                <header class="plan-note-header">
+                    <div>
+                        <h2 id="plan-note-title" class="plan-note-title">Camp note</h2>
+                        <p class="plan-note-camp-name" id="plan-note-camp-name"></p>
+                        <p class="plan-note-meta" id="plan-note-meta"></p>
+                    </div>
+                    <button type="button" class="plan-note-close" aria-label="Close">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                </header>
+                <form id="plan-note-form" class="plan-note-form">
+                    <div class="plan-note-body">
+                        <div class="plan-note-field">
+                            <label for="plan-note-text">Note</label>
+                            <textarea id="plan-note-text" class="plan-note-text" maxlength="${MAX_PLAN_NOTE_LENGTH}" rows="5" placeholder="Add a note for this camp on your plan"></textarea>
+                            <p class="plan-note-field-hint">Up to ${MAX_PLAN_NOTE_LENGTH} characters. Leave blank to remove a note.</p>
+                        </div>
+                        <div id="plan-note-error" class="plan-note-error" style="display:none;"></div>
+                    </div>
+                    <footer class="plan-note-footer">
+                        <button type="submit" class="plan-note-submit">Save note</button>
+                        <button type="button" class="plan-note-cancel">Cancel</button>
+                    </footer>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(backdrop);
+        document.body.appendChild(modal);
+
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closePlanNoteModal();
+        });
+        modal.querySelector('.plan-note-close').addEventListener('click', closePlanNoteModal);
+        modal.querySelector('.plan-note-cancel').addEventListener('click', closePlanNoteModal);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) closePlanNoteModal();
+        });
+        modal.querySelector('#plan-note-form').addEventListener('submit', handlePlanNoteSubmit);
+    }
+
+    modal.dataset.entryId = entryId;
+
+    const campEl = document.getElementById('plan-note-camp-name');
+    const metaEl = document.getElementById('plan-note-meta');
+    const textEl = document.getElementById('plan-note-text');
+    const errEl = document.getElementById('plan-note-error');
+
+    if (campEl) campEl.textContent = campName || 'Camp';
+
+    const childLabel = normalizeChildName(childName) || 'Unassigned';
+    const datesLabel = formatDateRange(startDate, endDate);
+    if (metaEl) metaEl.textContent = datesLabel ? `${childLabel} · ${datesLabel}` : childLabel;
+
+    if (textEl) textEl.value = currentNote || '';
+    if (errEl) {
+        errEl.textContent = '';
+        errEl.style.display = 'none';
+    }
+
+    document.body.style.overflow = 'hidden';
+    backdrop.classList.add('active');
+    modal.classList.add('active');
+    textEl?.focus();
+}
+
+function showPlanNoteError(message) {
+    const errEl = document.getElementById('plan-note-error');
+    if (errEl) {
+        errEl.textContent = message;
+        errEl.style.display = 'block';
+    }
+}
+
+async function handlePlanNoteSubmit(e) {
+    e.preventDefault();
+    const modal = document.getElementById('plan-note-modal');
+    const textEl = document.getElementById('plan-note-text');
+    const entryId = modal?.dataset.entryId;
+    if (!entryId) return;
+
+    const notesResult = parseNotesInput(textEl?.value);
+    if (!notesResult.ok) {
+        showPlanNoteError(notesResult.error || 'Please shorten your note.');
+        return;
+    }
+
+    const ok = await updatePlanEntry(entryId, { notes: notesResult.value });
+    if (ok) {
+        closePlanNoteModal();
+        if (typeof onPlanNoteSaved === 'function') onPlanNoteSaved();
+    } else {
+        showPlanNoteError('Could not save note. Please try again.');
+    }
+}
+
+function closePlanNoteModal() {
+    const backdrop = document.getElementById('plan-note-backdrop');
+    const modal = document.getElementById('plan-note-modal');
+    if (backdrop) backdrop.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
 }
