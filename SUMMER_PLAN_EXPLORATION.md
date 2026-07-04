@@ -1,7 +1,9 @@
 # Summer Plan Feature – Exploration
 
-**Status:** Exploration (not implementing yet)  
-**Goal:** Add camps to a summer plan with user-specified dates; show list + calendar views. Future: print calendar, calendar invites for registration dates.
+**Status:** Exploration (core feature implemented; see [SUMMER_PLAN_PLAN.md](./SUMMER_PLAN_PLAN.md))  
+**Goal:** Add camps to a summer plan with user-specified dates; show list + calendar views. Future: print calendar, calendar invites.
+
+**Deferred explorations:** See [.cursor/rules/summer-plan-exploration.mdc](./.cursor/rules/summer-plan-exploration.mdc) and §8 below.
 
 ---
 
@@ -9,7 +11,7 @@
 
 - **Add camp to summer plan:** User adds a camp; we prompt for dates (booked or want to book).
 - **Summer plan page:** List view + simple calendar view of the summer with camps.
-- **Future (out of scope for now):** Print calendar; send calendar invites for registration dates.
+- **Future (not implemented):** Print calendar; calendar invites — see [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](./SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md) (Track A: Booked pickup/dropoff; Track B: Want to book registration reminder).
 
 ---
 
@@ -176,3 +178,13 @@ Entry points:
 1. Resolve open questions in §5.7.
 2. Finalize plan and implementation order.
 3. Implement.
+
+---
+
+## 8. Related explorations (future / deferred)
+
+| Feature | Document | Status |
+|---------|----------|--------|
+| Calendar invites — Booked pickup/dropoff (±30 min) | [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](./SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md) §Track A | **Exploration only** |
+| Calendar invites — Want to book registration (30 min before opens) | [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](./SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md) §Track B | **Exploration only** |
+| Agent index | [.cursor/rules/summer-plan-exploration.mdc](./.cursor/rules/summer-plan-exploration.mdc) | Cursor rule |
