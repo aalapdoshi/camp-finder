@@ -9,6 +9,9 @@ const REG_CAL_DELIVERY_LABELS = {
 let regCalendarModalContext = null;
 let regCalendarOpenMenu = null;
 
+const REG_CALENDAR_TRIGGER_LABEL = 'Add reg. to calendar';
+const REG_CALENDAR_TRIGGER_LABEL_FULL = 'Add Registration Time to Calendar';
+
 /**
  * Mount Add to Calendar dropdown into container.
  * @param {HTMLElement} container
@@ -23,10 +26,12 @@ function createRegCalendarDropdown(container, ctx) {
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
-    trigger.className = 'summer-plan-note-link reg-calendar-trigger';
+    trigger.className = 'summer-plan-action-link reg-calendar-trigger';
     trigger.setAttribute('aria-haspopup', 'menu');
     trigger.setAttribute('aria-expanded', 'false');
-    trigger.innerHTML = `Add to Calendar <span class="reg-calendar-chevron" aria-hidden="true">▾</span>`;
+    trigger.setAttribute('aria-label', REG_CALENDAR_TRIGGER_LABEL_FULL);
+    trigger.title = REG_CALENDAR_TRIGGER_LABEL_FULL;
+    trigger.innerHTML = `${REG_CALENDAR_TRIGGER_LABEL} <span class="reg-calendar-chevron" aria-hidden="true">▾</span>`;
 
     const menu = document.createElement('div');
     menu.className = 'reg-calendar-menu';

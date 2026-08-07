@@ -225,16 +225,26 @@ function renderListNotesCell(entry) {
     const previewHtml = note
         ? `<p class="summer-plan-note-preview" title="${escapeHtml(note)}">${escapeHtml(preview)}</p>`
         : '';
-    const calendarMount =
-        entry.status === 'want_to_book'
-            ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
-            : '';
     return `
         <td class="summer-plan-cell-notes">
             ${previewHtml}
             <div class="summer-plan-note-actions">
                 <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${linkLabel}</button>
+            </div>
+        </td>
+    `;
+}
+
+function renderListActionsCell(entry) {
+    const calendarMount =
+        entry.status === 'want_to_book'
+            ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
+            : '';
+    return `
+        <td class="summer-plan-cell-actions">
+            <div class="summer-plan-actions">
                 ${calendarMount}
+                <button type="button" class="summer-plan-action-link summer-plan-action-link--danger btn-remove-plan" data-entry-id="${entry.id}">Remove</button>
             </div>
         </td>
     `;
@@ -300,6 +310,7 @@ function renderList(entries, campById, childNames) {
 
         const weekStr = formatWeekOf(entry.start_date);
         const notesCellHtml = renderListNotesCell(entry);
+        const actionsCellHtml = renderListActionsCell(entry);
 
         tr.innerHTML = `
             <td class="summer-plan-cell-camp">
@@ -328,9 +339,7 @@ function renderList(entries, campById, childNames) {
                 </select>
             </td>
             ${notesCellHtml}
-            <td class="summer-plan-cell-actions">
-                <button type="button" class="btn-remove-plan btn-secondary" data-entry-id="${entry.id}">Remove</button>
-            </td>
+            ${actionsCellHtml}
         `;
 
         const childCell = tr.querySelector('.summer-plan-cell-child');

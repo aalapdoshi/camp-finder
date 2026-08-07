@@ -2360,7 +2360,8 @@ a.summer-plan-week-card-camp-name:hover {
     gap: 0.35rem 0.65rem;
 }
 
-.summer-plan-note-link {
+.summer-plan-note-link,
+.summer-plan-action-link {
     padding: 0;
     border: none;
     background: none;
@@ -2371,13 +2372,24 @@ a.summer-plan-week-card-camp-name:hover {
     cursor: pointer;
     text-decoration: underline;
     text-underline-offset: 2px;
+    text-align: left;
 }
 
-.summer-plan-note-link:hover {
+.summer-plan-note-link:hover,
+.summer-plan-action-link:hover {
     color: #1d4ed8;
 }
 
-.summer-plan-note-link.reg-calendar-trigger .reg-calendar-chevron {
+.summer-plan-action-link--danger {
+    color: #b91c1c;
+}
+
+.summer-plan-action-link--danger:hover {
+    color: #991b1b;
+}
+
+.summer-plan-note-link.reg-calendar-trigger .reg-calendar-chevron,
+.summer-plan-action-link.reg-calendar-trigger .reg-calendar-chevron {
     text-decoration: none;
     display: inline-block;
     margin-left: 0.05em;
@@ -2399,8 +2411,20 @@ a.summer-plan-week-card-camp-name:hover {
 }
 
 .summer-plan-cell-actions {
-    min-width: 6rem;
+    min-width: 8.5rem;
     vertical-align: top;
+}
+
+.summer-plan-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+
+.summer-plan-cell-actions .reg-calendar-dropdown {
+    display: block;
+    text-align: left;
 }
 
 .summer-plan-reg-calendar-mount {
