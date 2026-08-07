@@ -34,6 +34,19 @@ AIRTABLE_BASE_ID=YOUR_AIRTABLE_BASE_ID_HERE
 OPENAI_API_KEY=sk-your-openai-key-here
 ```
 
+**Registration calendar email** (Resend — required for “Email me this invite” on Summer Plan):
+
+See [REGISTRATION_ICS_PLAN.md](./REGISTRATION_ICS_PLAN.md) §Resend setup for full steps. Summary:
+
+```
+RESEND_API_KEY=re_your_resend_api_key
+REGISTRATION_CALENDAR_FROM_EMAIL=calendar@yourdomain.com
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+```
+
+- Verify your domain in [Resend](https://resend.com) before using the From address.
+- Redeploy after adding variables.
+
 ### 3. Deploy
 
 Netlify will automatically:

@@ -204,6 +204,7 @@ Scheduled jobs table (optional): `plan_calendar_invites` with `entry_id`, `invit
 ## Next steps (when prioritized)
 
 1. Answer Track A and Track B open questions (§above).
-2. Confirm shared email/calendar infrastructure once for both tracks.
-3. Run `create-plan.mdc` → implementation plan(s) — may be one plan with two phases or two PRs.
-4. **Do not implement** until explicitly requested.
+2. **MVP shortcut:** [REGISTRATION_ICS_EXPLORATION.md](./REGISTRATION_ICS_EXPLORATION.md) — client `.ics` download (no email/cron); resolve open questions there first.
+3. Confirm shared email/calendar infrastructure once for full Track B (if email path is still desired later).
+4. Run `create-plan.mdc` → implementation plan(s) — may be one plan with two phases or two PRs.
+5. **Do not implement** until explicitly requested.

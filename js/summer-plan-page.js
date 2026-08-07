@@ -8,6 +8,7 @@ let allEntries = [];
 let cachedCampById = null;
 let activeChildFilter = 'all';
 let knownChildNames = [];
+let summerPlanAuthEmail = '';
 
 function getStoredChildFilter() {
     try {
@@ -54,6 +55,8 @@ async function initSummerPlanPage() {
             return;
         }
 
+        summerPlanAuthEmail = session.user.email || session.user.user_metadata?.email || '';
+
         allEntries = await getPlanEntries();
         knownChildNames = distinctChildNamesFromEntries(allEntries);
         activeChildFilter = getStoredChildFilter();
@@ -91,6 +94,7 @@ function refreshViews() {
     renderCostTotal(filtered, activeChildFilter);
     wireRemoveButtons();
     wireNoteButtons();
+    wireRegCalendarDropdowns();
 }
 
 function sumEstimatedCost(entries) {
@@ -221,10 +225,17 @@ function renderListNotesCell(entry) {
     const previewHtml = note
         ? `<p class="summer-plan-note-preview" title="${escapeHtml(note)}">${escapeHtml(preview)}</p>`
         : '';
+    const calendarMount =
+        entry.status === 'want_to_book'
+            ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
+            : '';
     return `
         <td class="summer-plan-cell-notes">
             ${previewHtml}
-            <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${linkLabel}</button>
+            <div class="summer-plan-note-actions">
+                <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${linkLabel}</button>
+                ${calendarMount}
+            </div>
         </td>
     `;
 }
@@ -240,6 +251,24 @@ function openNoteModalForEntry(entry) {
         startDate: entry.start_date,
         endDate: entry.end_date,
         currentNote: getEntryNotes(entry)
+    });
+}
+
+function wireRegCalendarDropdowns() {
+    if (typeof createRegCalendarDropdown !== 'function') return;
+
+    document.querySelectorAll('[data-reg-calendar-mount]').forEach((mount) => {
+        const entryId = mount.dataset.entryId;
+        const entry = allEntries.find((e) => e.id === entryId);
+        if (!entry || entry.status !== 'want_to_book') return;
+
+        const camp = cachedCampById?.get(entry.camp_id);
+        createRegCalendarDropdown(mount, {
+            entry,
+            campFields: camp?.fields || null,
+            campName: camp?.fields?.['Camp Name'] ?? 'Unknown camp',
+            authEmail: summerPlanAuthEmail
+        });
     });
 }
 
@@ -299,7 +328,7 @@ function renderList(entries, campById, childNames) {
                 </select>
             </td>
             ${notesCellHtml}
-            <td>
+            <td class="summer-plan-cell-actions">
                 <button type="button" class="btn-remove-plan btn-secondary" data-entry-id="${entry.id}">Remove</button>
             </td>
         `;
@@ -462,10 +491,17 @@ function renderCalendarWeekCard(entry, campById) {
     const note = getEntryNotes(entry);
     const notePreview = note ? truncatePlanNote(note, 80) : '';
     const noteLinkLabel = note ? 'Edit note' : 'Add note';
+    const calendarMount =
+        entry.status === 'want_to_book'
+            ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
+            : '';
     const noteBlock = `
         <p class="summer-plan-week-card-note">
-            ${note ? `<span class="summer-plan-week-card-note-preview" title="${escapeHtml(note)}">${escapeHtml(notePreview)}</span> ` : ''}
-            <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${noteLinkLabel}</button>
+            ${note ? `<span class="summer-plan-week-card-note-preview" title="${escapeHtml(note)}">${escapeHtml(notePreview)}</span>` : ''}
+            <span class="summer-plan-note-actions">
+                <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${noteLinkLabel}</button>
+                ${calendarMount}
+            </span>
         </p>`;
     const campLink = isUnavailable
         ? `<span class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</span>`
