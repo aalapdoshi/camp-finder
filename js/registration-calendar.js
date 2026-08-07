@@ -43,11 +43,11 @@ function createRegCalendarDropdown(container, ctx) {
         : 'Send to your account email';
 
     menu.innerHTML = `
-        <button type="button" class="reg-calendar-menu-item" role="menuitem" data-delivery="google">
-            <span class="material-symbols-outlined reg-calendar-menu-icon" aria-hidden="true">event</span>
+        <button type="button" class="reg-calendar-menu-item" role="menuitem" data-delivery="email">
+            <span class="material-symbols-outlined reg-calendar-menu-icon" aria-hidden="true">mail</span>
             <span class="reg-calendar-menu-text">
-                <span class="reg-calendar-menu-title">Google Calendar</span>
-                <span class="reg-calendar-menu-sub">Opens Google Calendar in a new tab</span>
+                <span class="reg-calendar-menu-title">Email me this invite</span>
+                <span class="reg-calendar-menu-sub">${escapeHtml(emailSubtitle)}</span>
             </span>
         </button>
         <button type="button" class="reg-calendar-menu-item" role="menuitem" data-delivery="ics">
@@ -57,11 +57,11 @@ function createRegCalendarDropdown(container, ctx) {
                 <span class="reg-calendar-menu-sub">Download .ics file</span>
             </span>
         </button>
-        <button type="button" class="reg-calendar-menu-item" role="menuitem" data-delivery="email">
-            <span class="material-symbols-outlined reg-calendar-menu-icon" aria-hidden="true">mail</span>
+        <button type="button" class="reg-calendar-menu-item" role="menuitem" data-delivery="google">
+            <span class="material-symbols-outlined reg-calendar-menu-icon" aria-hidden="true">event</span>
             <span class="reg-calendar-menu-text">
-                <span class="reg-calendar-menu-title">Email me this invite</span>
-                <span class="reg-calendar-menu-sub">${escapeHtml(emailSubtitle)}</span>
+                <span class="reg-calendar-menu-title">Google Calendar</span>
+                <span class="reg-calendar-menu-sub">Opens Google Calendar in a new tab</span>
             </span>
         </button>
     `;

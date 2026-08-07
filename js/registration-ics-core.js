@@ -346,6 +346,225 @@ function getIcsFilename(campName, childName) {
     return `registration-${slug(childName)}-${slug(campName)}.ics`;
 }
 
+/**
+ * Mon–Fri dates (inclusive) between start and end (`YYYY-MM-DD`).
+ * @param {string} startDate
+ * @param {string} [endDate]
+ * @returns {string[]}
+ */
+function enumerateWeekdaysInRange(startDate, endDate) {
+    if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) return [];
+    const end = endDate && /^\d{4}-\d{2}-\d{2}$/.test(endDate) ? endDate : startDate;
+    const [sy, sm, sd] = startDate.split('-').map(Number);
+    const [ey, em, ed] = end.split('-').map(Number);
+    const endMs = Date.UTC(ey, em - 1, ed);
+    const dates = [];
+
+    for (let cur = Date.UTC(sy, sm - 1, sd); cur <= endMs; cur += 86400000) {
+        const dt = new Date(cur);
+        const dow = dt.getUTCDay();
+        if (dow >= 1 && dow <= 5) {
+            dates.push(
+                `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`
+            );
+        }
+    }
+    return dates;
+}
+
+/**
+ * ±30 min window around a camp-day wall time (same as registration).
+ * @param {string} dateStr
+ * @param {string} timeStr24
+ */
+function getCampDayEventWindowMs(dateStr, timeStr24) {
+    const { registrationMs, startMs, endMs } = getRegistrationEventWindowMs(dateStr, timeStr24);
+    return { eventMs: registrationMs, startMs, endMs };
+}
+
+/** @param {string} campName @param {string} childName */
+function buildDropoffEventTitle(campName, childName) {
+    const child = (childName || '').trim() || 'Child';
+    const camp = (campName || '').trim() || 'Camp';
+    return `Drop off ${child}: ${camp}`;
+}
+
+/** @param {string} campName @param {string} childName */
+function buildPickupEventTitle(campName, childName) {
+    const child = (childName || '').trim() || 'Child';
+    const camp = (campName || '').trim() || 'Camp';
+    return `Pick up ${child}: ${camp}`;
+}
+
+/**
+ * @param {object} opts
+ * @returns {string}
+ */
+function buildPickupDropoffEventDescription(opts) {
+    const lines = [];
+    if (opts.campName) lines.push(`Camp: ${opts.campName}`);
+    if (opts.childName) lines.push(`Child: ${opts.childName}`);
+    if (opts.planDatesLabel) lines.push(`Plan dates: ${opts.planDatesLabel}`);
+    if (opts.eventType && opts.eventDate && opts.eventTime) {
+        const label = opts.eventType === 'dropoff' ? 'Drop off' : 'Pick up';
+        lines.push(`${label}: ${opts.eventDate} at ${opts.eventTime}`);
+    }
+    lines.push('Reminder spans 30 minutes before and after the time you set (America/Detroit).');
+    if (opts.scheduleNotes) lines.push(`Schedule notes: ${opts.scheduleNotes}`);
+    if (opts.campDetailUrl) lines.push(`Camp details: ${opts.campDetailUrl}`);
+    return lines.join('\n');
+}
+
+/**
+ * Build all pickup/dropoff events for weekdays in plan range.
+ * @param {object} params
+ * @returns {object[]}
+ */
+function buildPickupDropoffEvents(params) {
+    const {
+        campName,
+        childName,
+        startDate,
+        endDate,
+        dropoffTime = '',
+        pickupTime = '',
+        planDatesLabel = '',
+        campDetailUrl = '',
+        scheduleNotes = '',
+        entryId = '',
+        campId = ''
+    } = params;
+
+    const dropoff = String(dropoffTime || '').trim();
+    const pickup = String(pickupTime || '').trim();
+    if (!dropoff && !pickup) {
+        throw new Error('At least one of dropoff or pickup time is required.');
+    }
+
+    const weekdays = enumerateWeekdaysInRange(startDate, endDate);
+    if (weekdays.length === 0) {
+        throw new Error('No weekdays in plan date range.');
+    }
+
+    const events = [];
+    const baseDesc = { campName, childName, planDatesLabel, campDetailUrl, scheduleNotes };
+
+    for (const date of weekdays) {
+        if (dropoff) {
+            const { startMs, endMs } = getCampDayEventWindowMs(date, dropoff);
+            events.push({
+                type: 'dropoff',
+                date,
+                time: dropoff,
+                startMs,
+                endMs,
+                title: buildDropoffEventTitle(campName, childName),
+                description: buildPickupDropoffEventDescription({
+                    ...baseDesc,
+                    eventType: 'dropoff',
+                    eventDate: date,
+                    eventTime: dropoff
+                }),
+                uid: `dropoff-${campId || 'camp'}-${entryId || 'entry'}-${date}T${dropoff}@a2campfinder`
+            });
+        }
+        if (pickup) {
+            const { startMs, endMs } = getCampDayEventWindowMs(date, pickup);
+            events.push({
+                type: 'pickup',
+                date,
+                time: pickup,
+                startMs,
+                endMs,
+                title: buildPickupEventTitle(campName, childName),
+                description: buildPickupDropoffEventDescription({
+                    ...baseDesc,
+                    eventType: 'pickup',
+                    eventDate: date,
+                    eventTime: pickup
+                }),
+                uid: `pickup-${campId || 'camp'}-${entryId || 'entry'}-${date}T${pickup}@a2campfinder`
+            });
+        }
+    }
+    return events;
+}
+
+/**
+ * @param {object[]} events — from buildPickupDropoffEvents
+ * @returns {string}
+ */
+function buildPickupDropoffIcs(events) {
+    if (!events?.length) throw new Error('No events to export.');
+    const now = formatIcsUtcStamp(Date.now());
+    const vevents = events.map((ev) => {
+        const startWall = utcMsToWallParts(ev.startMs);
+        const endWall = utcMsToWallParts(ev.endMs);
+        return [
+            'BEGIN:VEVENT',
+            `UID:${ev.uid}`,
+            `DTSTAMP:${now}`,
+            `DTSTART;TZID=${REGISTRATION_CALENDAR_TZ}:${formatIcsLocalDateTime(startWall)}`,
+            `DTEND;TZID=${REGISTRATION_CALENDAR_TZ}:${formatIcsLocalDateTime(endWall)}`,
+            `SUMMARY:${escapeIcsText(ev.title)}`,
+            `DESCRIPTION:${escapeIcsText(ev.description)}`,
+            'END:VEVENT'
+        ].join('\r\n');
+    });
+
+    return [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//A2CampFinder//Pickup Dropoff Reminder//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        ...vevents,
+        'END:VCALENDAR'
+    ].join('\r\n') + '\r\n';
+}
+
+/**
+ * @param {object} event — single event from buildPickupDropoffEvents
+ * @returns {string}
+ */
+function buildGoogleCalendarUrlForEvent(event) {
+    const startWall = utcMsToWallParts(event.startMs);
+    const endWall = utcMsToWallParts(event.endMs);
+    const dates = `${formatIcsLocalDateTime(startWall)}/${formatIcsLocalDateTime(endWall)}`;
+    const q = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: event.title,
+        dates,
+        ctz: REGISTRATION_CALENDAR_TZ,
+        details: event.description
+    });
+    return `https://calendar.google.com/calendar/render?${q.toString()}`;
+}
+
+/**
+ * @param {string} campName
+ * @param {string} childName
+ * @returns {string}
+ */
+function getPickupDropoffIcsFilename(campName, childName) {
+    const slug = (s) =>
+        String(s || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+            .slice(0, 40) || 'camp';
+    return `pickup-dropoff-${slug(childName)}-${slug(campName)}.ics`;
+}
+
+/**
+ * Whether a camp-day time is in the past (America/Detroit).
+ * @param {string} dateStr
+ * @param {string} timeStr24
+ */
+function isCampDayEventInPast(dateStr, timeStr24) {
+    return isRegistrationInPast(dateStr, timeStr24);
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         REGISTRATION_CALENDAR_TZ,
@@ -359,6 +578,16 @@ if (typeof module !== 'undefined' && module.exports) {
         buildRegistrationEventDescription,
         buildRegistrationIcs,
         buildGoogleCalendarUrl,
-        getIcsFilename
+        getIcsFilename,
+        enumerateWeekdaysInRange,
+        getCampDayEventWindowMs,
+        buildDropoffEventTitle,
+        buildPickupEventTitle,
+        buildPickupDropoffEventDescription,
+        buildPickupDropoffEvents,
+        buildPickupDropoffIcs,
+        buildGoogleCalendarUrlForEvent,
+        getPickupDropoffIcsFilename,
+        isCampDayEventInPast
     };
 }

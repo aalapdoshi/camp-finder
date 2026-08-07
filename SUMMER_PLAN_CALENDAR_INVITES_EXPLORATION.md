@@ -16,7 +16,40 @@ Two related features share email/calendar infrastructure but differ by **plan st
 
 ## Track A — Pickup / dropoff invites (Booked)
 
+**Status:** Implemented (Aug 2026) — see [PICKUP_DROPOFF_ICS_PLAN.md](./PICKUP_DROPOFF_ICS_PLAN.md)
+
 ### Feature summary
+
+For **Booked** summer-plan entries (list + calendar), **Add pickup/dropoff to calendar ▾** with Google / `.ics` / email delivery. Modal shows **Schedule Notes** (read-only) and user-entered **dropoff** / **pickup** times (no prefill). Either time required. Events for each **weekday** in plan range; ±30 min window; titles `Drop off {Child}: {Camp}` / `Pick up {Child}: {Camp}`. Google opens up to two tabs (first weekday per type); `.ics`/email include all weekdays.
+
+### Resolved decisions (Aug 2026)
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Status | `booked` only |
+| 2 | Placement | List Actions + calendar cards |
+| 3 | Events | Two types (dropoff + pickup), separate invites |
+| 4 | Window | ±30 min (same as registration) |
+| 5 | Dates | Each weekday Mon–Fri in plan range |
+| 6 | Validation | Either dropoff or pickup required |
+| 7 | Prefill | Schedule Notes as text only; times blank |
+| 8 | Google | Two tabs when both times set (first weekday) |
+| 9 | Email | One message, one multi-event `.ics` |
+| 10 | Storage | Ephemeral |
+
+### Track A — codebase (historical gaps, now addressed)
+
+| Area | State |
+|------|--------|
+| **UI** | `js/pickup-dropoff-calendar.js` + Summer Plan wiring |
+| **ICS core** | Extended `js/registration-ics-core.js` |
+| **Email** | `netlify/functions/send-pickup-dropoff-calendar.js` |
+
+---
+
+## Track A — Pickup / dropoff invites (Booked) — original exploration notes
+
+### Feature summary (original)
 
 For **Booked** summer-plan entries, send **calendar invites** to **user-provided email addresses**, timed to:
 

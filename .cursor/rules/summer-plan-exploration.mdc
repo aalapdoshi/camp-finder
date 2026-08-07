@@ -14,7 +14,8 @@ Use this rule when working on **Summer Plan** features that are not yet implemen
 
 | Topic | Doc | Status |
 |-------|-----|--------|
-| Calendar invites — **Track A:** pickup/dropoff (Booked, ±30 min) | [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](../../SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md) §Track A | Exploration only |
+| Calendar invites — **Track A:** pickup/dropoff (Booked, ±30 min) | [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](../../SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md) §Track A | **Implemented** — [PICKUP_DROPOFF_ICS_PLAN.md](../../PICKUP_DROPOFF_ICS_PLAN.md) |
+| Pickup/dropoff `.ics` + email (implementation) | [PICKUP_DROPOFF_ICS_PLAN.md](../../PICKUP_DROPOFF_ICS_PLAN.md) | **Implemented** (Aug 2026) |
 | Calendar invites — **Track B:** registration opens (Want to book, 30 min before) | [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](../../SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md) §Track B | Exploration only (email/cron) |
 | Registration `.ics` download MVP (client-only, ±30 min window) | [REGISTRATION_ICS_EXPLORATION.md](../../REGISTRATION_ICS_EXPLORATION.md) | Resolved — see plan |
 | Registration `.ics` + email (implementation) | [REGISTRATION_ICS_PLAN.md](../../REGISTRATION_ICS_PLAN.md) | **Implemented** (Aug 2026) |
@@ -35,7 +36,7 @@ Use this rule when working on **Summer Plan** features that are not yet implemen
 
 Two deferred tracks in [SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md](../../SUMMER_PLAN_CALENDAR_INVITES_EXPLORATION.md):
 
-- **Track A (Booked):** pickup−30m / dropoff+30m — needs structured camp-day times.
+- **Track A (Booked):** pickup/dropoff ±30m — user-entered times + Schedule Notes in modal; see [PICKUP_DROPOFF_ICS_PLAN.md](../../PICKUP_DROPOFF_ICS_PLAN.md).
 - **Track B (Want to book):** registration opens−30m — uses `Registration Opens Date` / `Registration Opens Time` from camp catalog; needs time parser + email/`.ics` + cron.
 - **Track B MVP:** client `.ics` download + optional email via Resend — [REGISTRATION_ICS_PLAN.md](../../REGISTRATION_ICS_PLAN.md) (execute when requested); exploration [REGISTRATION_ICS_EXPLORATION.md](../../REGISTRATION_ICS_EXPLORATION.md).
 

@@ -2634,6 +2634,36 @@ a.summer-plan-week-card-camp-name:hover {
     color: #434655;
 }
 
+.reg-calendar-hint--muted {
+    font-style: italic;
+}
+
+.reg-calendar-field-label {
+    margin: 0 0 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.reg-calendar-schedule-notes-wrap {
+    margin-bottom: 0.25rem;
+}
+
+.reg-calendar-schedule-notes {
+    margin: 0;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--text-dark);
+    background: var(--sp-surface-lowest, #f8f9ff);
+    border: 1px solid var(--border-color, #c3c6d7);
+    border-radius: 0.5rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 8rem;
+    overflow-y: auto;
+}
+
 .reg-calendar-warn {
     margin: 0;
     padding: 0.65rem 0.75rem;

@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Added
+- Summer Plan pickup/dropoff calendar: **Add pickup/dropoff to calendar ▾** on `booked` entries (list + calendar) with Google Calendar (up to two tabs), multi-event `.ics` download, and email invite (Resend). Modal shows Schedule Notes and user-entered dropoff/pickup times; events for each weekday in plan range, ±30 min (`America/Detroit`). Netlify function: `send-pickup-dropoff-calendar.js`.
 - Summer Plan registration calendar: **Add to Calendar ▼** on `want_to_book` entries (list + calendar) with Google Calendar link, `.ics` download, and email invite (Resend). Modal prefills registration date/time from camp catalog; event spans ±30 min around registration (`America/Detroit`). Netlify function: `send-registration-calendar.js`.
 - Summer Plan notes: optional note on Add to Plan modal; Notes column in list view (preview + Add/Edit link); calendar cards show truncated note with Add/Edit link; dedicated note modal with camp, child, and dates. Migration: `supabase/migrations/20260703220000_add_notes.sql`.
 - Add to Summer Plan modal (Stitch): pill child chips (no Unassigned), estimated cost field (blank saves as `$0`), segmented status toggle, Cancel action. Migration: `supabase/migrations/20260703190000_add_estimated_cost.sql`.

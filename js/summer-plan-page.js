@@ -95,6 +95,7 @@ function refreshViews() {
     wireRemoveButtons();
     wireNoteButtons();
     wireRegCalendarDropdowns();
+    wirePickupDropoffCalendarDropdowns();
 }
 
 function sumEstimatedCost(entries) {
@@ -236,14 +237,19 @@ function renderListNotesCell(entry) {
 }
 
 function renderListActionsCell(entry) {
-    const calendarMount =
+    const regCalendarMount =
         entry.status === 'want_to_book'
             ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
+            : '';
+    const pdCalendarMount =
+        entry.status === 'booked'
+            ? `<span class="summer-plan-reg-calendar-mount" data-pickup-dropoff-calendar-mount data-entry-id="${entry.id}"></span>`
             : '';
     return `
         <td class="summer-plan-cell-actions">
             <div class="summer-plan-actions">
-                ${calendarMount}
+                ${regCalendarMount}
+                ${pdCalendarMount}
                 <button type="button" class="summer-plan-action-link summer-plan-action-link--danger btn-remove-plan" data-entry-id="${entry.id}">Remove</button>
             </div>
         </td>
@@ -274,6 +280,24 @@ function wireRegCalendarDropdowns() {
 
         const camp = cachedCampById?.get(entry.camp_id);
         createRegCalendarDropdown(mount, {
+            entry,
+            campFields: camp?.fields || null,
+            campName: camp?.fields?.['Camp Name'] ?? 'Unknown camp',
+            authEmail: summerPlanAuthEmail
+        });
+    });
+}
+
+function wirePickupDropoffCalendarDropdowns() {
+    if (typeof createPickupDropoffCalendarDropdown !== 'function') return;
+
+    document.querySelectorAll('[data-pickup-dropoff-calendar-mount]').forEach((mount) => {
+        const entryId = mount.dataset.entryId;
+        const entry = allEntries.find((e) => e.id === entryId);
+        if (!entry || entry.status !== 'booked') return;
+
+        const camp = cachedCampById?.get(entry.camp_id);
+        createPickupDropoffCalendarDropdown(mount, {
             entry,
             campFields: camp?.fields || null,
             campName: camp?.fields?.['Camp Name'] ?? 'Unknown camp',
@@ -500,16 +524,21 @@ function renderCalendarWeekCard(entry, campById) {
     const note = getEntryNotes(entry);
     const notePreview = note ? truncatePlanNote(note, 80) : '';
     const noteLinkLabel = note ? 'Edit note' : 'Add note';
-    const calendarMount =
+    const regCalendarMount =
         entry.status === 'want_to_book'
             ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
+            : '';
+    const pdCalendarMount =
+        entry.status === 'booked'
+            ? `<span class="summer-plan-reg-calendar-mount" data-pickup-dropoff-calendar-mount data-entry-id="${entry.id}"></span>`
             : '';
     const noteBlock = `
         <p class="summer-plan-week-card-note">
             ${note ? `<span class="summer-plan-week-card-note-preview" title="${escapeHtml(note)}">${escapeHtml(notePreview)}</span>` : ''}
             <span class="summer-plan-note-actions">
                 <button type="button" class="summer-plan-note-link" data-entry-id="${entry.id}">${noteLinkLabel}</button>
-                ${calendarMount}
+                ${regCalendarMount}
+                ${pdCalendarMount}
             </span>
         </p>`;
     const campLink = isUnavailable
