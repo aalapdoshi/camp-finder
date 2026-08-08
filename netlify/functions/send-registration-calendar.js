@@ -10,6 +10,7 @@ const {
     buildRegistrationEventTitle,
     getIcsFilename
 } = require(path.join(__dirname, '../../js/registration-ics-core.js'));
+const { getResendConfig, sendCalendarInviteEmail } = require(path.join(__dirname, '../lib/calendar-email-resend.js'));
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -84,10 +85,7 @@ exports.handler = async (event) => {
         };
     }
 
-    const resendKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.REGISTRATION_CALENDAR_FROM_EMAIL;
-
-    if (!resendKey || !fromEmail) {
+    if (!getResendConfig()) {
         return {
             statusCode: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -151,35 +149,23 @@ exports.handler = async (event) => {
         ${params.registrationUrl ? `<p><a href="${escapeHtml(params.registrationUrl)}">Registration page</a></p>` : ''}
         ${params.campDetailUrl ? `<p><a href="${escapeHtml(params.campDetailUrl)}">Camp details on A2CampFinder</a></p>` : ''}
     `.trim();
+    const textBody = `Your registration reminder for ${params.campName} is attached as a calendar file (.ics).`;
 
     try {
-        const res = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${resendKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from: fromEmail,
-                to: [user.email],
-                subject,
-                html: htmlBody,
-                attachments: [
-                    {
-                        filename,
-                        content: Buffer.from(icsContent, 'utf8').toString('base64')
-                    }
-                ]
-            })
+        const result = await sendCalendarInviteEmail({
+            to: user.email,
+            subject,
+            html: htmlBody,
+            text: textBody,
+            filename,
+            icsContent
         });
 
-        if (!res.ok) {
-            const errText = await res.text();
-            console.error('Resend error:', res.status, errText);
+        if (!result.ok) {
             return {
-                statusCode: 502,
+                statusCode: result.status,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ error: 'Could not send email. Try again later.' })
+                body: JSON.stringify({ error: result.error })
             };
         }
 

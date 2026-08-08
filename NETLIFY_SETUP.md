@@ -45,7 +45,17 @@ SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 ```
 
 - Verify your domain in [Resend](https://resend.com) before using the From address.
-- Redeploy after adding variables.
+- `REGISTRATION_CALENDAR_FROM_EMAIL` must use your **verified** domain (e.g. `calendar@a2campfinder.com`). Plain email is fine; the function formats it as `A2 CampFinder <calendar@a2campfinder.com>`.
+- Redeploy after adding or changing variables (Production scope).
+
+**Calendar email troubleshooting**
+
+| Symptom | Check |
+|---------|--------|
+| “Email service is not configured” | `RESEND_API_KEY` and `REGISTRATION_CALENDAR_FROM_EMAIL` set for **Production** |
+| Resend domain / from error in modal | From address domain must match a **Verified** domain in Resend (not `@resend.dev`) |
+| “Invalid or expired session” | Log out and back in; `SUPABASE_URL` matches your project |
+| Generic send failure | Netlify → Functions → `send-registration-calendar` logs; Resend dashboard → Emails |
 
 ### 3. Deploy
 
