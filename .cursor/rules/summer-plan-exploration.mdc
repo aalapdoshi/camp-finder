@@ -20,11 +20,13 @@ Use this rule when working on **Summer Plan** features that are not yet implemen
 | Registration `.ics` download MVP (client-only, ±30 min window) | [REGISTRATION_ICS_EXPLORATION.md](../../REGISTRATION_ICS_EXPLORATION.md) | Resolved — see plan |
 | Registration `.ics` + email (implementation) | [REGISTRATION_ICS_PLAN.md](../../REGISTRATION_ICS_PLAN.md) | **Implemented** (Aug 2026) |
 | Multi-child labels (Option A) | [MULTI_KID_SUMMER_PLAN_EXPLORATION.md](../../MULTI_KID_SUMMER_PLAN_EXPLORATION.md) | Implemented — see [MULTI_KID_SUMMER_PLAN_PLAN.md](../../MULTI_KID_SUMMER_PLAN_PLAN.md) |
+| Copy plan from another year | — | Deferred — see [SUMMER_PLAN_YEAR_PLAN.md](../../SUMMER_PLAN_YEAR_PLAN.md) Out of scope |
 
 ## Implemented plans (source of truth for built behavior)
 
 - [SUMMER_PLAN_PLAN.md](../../SUMMER_PLAN_PLAN.md)
 - [ADD_TO_PLAN_MODAL_PLAN.md](../../ADD_TO_PLAN_MODAL_PLAN.md)
+- [SUMMER_PLAN_YEAR_PLAN.md](../../SUMMER_PLAN_YEAR_PLAN.md) — 2026/2027 year switcher (default 2027)
 
 ## Workflow
 

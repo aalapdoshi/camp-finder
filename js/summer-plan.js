@@ -4,6 +4,10 @@
 const MAX_CHILD_NAMES = 6;
 const MAX_PLAN_NOTE_LENGTH = 500;
 const SUMMER_PLAN_LAST_CHILD_KEY = 'summerPlanLastChildName';
+/** Allowed Summer Plan years (sidebar switcher). */
+const PLAN_YEARS = [2026, 2027];
+const DEFAULT_PLAN_YEAR = 2027;
+const SUMMER_PLAN_YEAR_KEY = 'summerPlanYear';
 
 const CHILD_COLORS = [
     '#2563eb',
@@ -360,10 +364,68 @@ function formatDateRange(startStr, endStr) {
     return start.toLocaleDateString('en-US', opt) + '–' + end.toLocaleDateString('en-US', opt);
 }
 
-function getSummerWeeks2026() {
+function isAllowedPlanYear(year) {
+    const y = Number(year);
+    return PLAN_YEARS.includes(y);
+}
+
+function normalizePlanYear(year) {
+    const y = Number(year);
+    return isAllowedPlanYear(y) ? y : DEFAULT_PLAN_YEAR;
+}
+
+/** Calendar year from ISO date string (YYYY-MM-DD). */
+function yearFromDate(isoDate) {
+    if (!isoDate || typeof isoDate !== 'string' || isoDate.length < 4) return null;
+    const y = Number(isoDate.slice(0, 4));
+    return Number.isFinite(y) ? y : null;
+}
+
+function filterEntriesByYear(entries, year) {
+    const y = normalizePlanYear(year);
+    return (entries || []).filter((e) => yearFromDate(e.start_date) === y);
+}
+
+/** Default start date for Add to Plan: June 1 of the given year. */
+function defaultSummerStartDate(year) {
+    const y = normalizePlanYear(year);
+    return `${y}-06-01`;
+}
+
+function getStoredPlanYear() {
+    try {
+        return normalizePlanYear(sessionStorage.getItem(SUMMER_PLAN_YEAR_KEY));
+    } catch (_) {
+        return DEFAULT_PLAN_YEAR;
+    }
+}
+
+function setStoredPlanYear(year) {
+    try {
+        sessionStorage.setItem(SUMMER_PLAN_YEAR_KEY, String(normalizePlanYear(year)));
+    } catch (_) { /* ignore */ }
+}
+
+/**
+ * Year for Add to Plan date defaults: explicit option, else active plan year on
+ * summer-plan page, else DEFAULT_PLAN_YEAR (browse / detail / favorites).
+ */
+function resolveAddToPlanDefaultYear(options) {
+    if (options && typeof options === 'object' && options.planYear != null) {
+        return normalizePlanYear(options.planYear);
+    }
+    if (typeof window !== 'undefined' && window.location.pathname.includes('summer-plan')) {
+        return getStoredPlanYear();
+    }
+    return DEFAULT_PLAN_YEAR;
+}
+
+/** Week rows for Jun 1 – Aug 31 of the given year. */
+function getSummerWeeks(year) {
+    const y = normalizePlanYear(year);
     const weeks = [];
-    let d = new Date('2026-06-01');
-    const end = new Date('2026-08-31');
+    let d = new Date(`${y}-06-01`);
+    const end = new Date(`${y}-08-31`);
 
     while (d <= end) {
         const mon = new Date(d);
@@ -390,7 +452,7 @@ function dateRangeOverlapsWeek(entryStart, entryEnd, weekStart, weekEnd) {
 /**
  * @param {string} campId
  * @param {string} campName
- * @param {string|{ preferredChildName?: string, campFields?: object }|null} [options]
+ * @param {string|{ preferredChildName?: string, campFields?: object, planYear?: number }|null} [options]
  */
 async function openAddToPlanModal(campId, campName, options = null) {
     const session = await getSession();
@@ -408,6 +470,10 @@ async function openAddToPlanModal(campId, campName, options = null) {
         preferredChildName = options.preferredChildName ?? null;
         campFields = options.campFields ?? null;
     }
+    const defaultYear = resolveAddToPlanDefaultYear(
+        typeof options === 'object' && options ? options : null
+    );
+    const defaultStart = defaultSummerStartDate(defaultYear);
 
     let backdrop = document.getElementById('add-to-plan-backdrop');
     let modal = document.getElementById('add-to-plan-modal');
@@ -514,7 +580,8 @@ async function openAddToPlanModal(campId, campName, options = null) {
     const endInput = document.getElementById('add-to-plan-end');
     const costInput = document.getElementById('add-to-plan-cost');
     const notesInput = document.getElementById('add-to-plan-notes');
-    if (startInput) startInput.value = '';
+    // Default into summer of active/default year; user may change freely.
+    if (startInput) startInput.value = defaultStart;
     if (endInput) endInput.value = '';
     if (costInput) costInput.value = getDefaultEstimatedCostFromCampFields(campFields);
     if (notesInput) notesInput.value = '';

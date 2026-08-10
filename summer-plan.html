@@ -12,7 +12,7 @@
       gtag('config', 'G-PGXHQ4PY3C');
     </script>
     <title>Summer Plan - A2CampFinder</title>
-    <meta name="description" content="Your summer camp plan for 2026.">
+    <meta name="description" content="Your summer camp plan for 2027.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -43,17 +43,21 @@
 
     <main class="summer-plan-page">
         <div class="summer-plan-shell">
-            <aside id="summer-plan-sidebar" class="app-sidebar summer-plan-child-sidebar" style="display:none" aria-label="Filter by child">
+            <aside id="summer-plan-sidebar" class="app-sidebar summer-plan-child-sidebar" style="display:none" aria-label="Summer plan filters">
                 <div class="summer-plan-sidebar-brand">
                     <div class="summer-plan-sidebar-brand-icon" aria-hidden="true">
                         <span class="material-symbols-outlined">family_restroom</span>
                     </div>
-                    <div>
-                        <h2 class="summer-plan-sidebar-title">Summer 2026</h2>
+                    <div class="summer-plan-sidebar-brand-text">
+                        <label class="summer-plan-year-label" for="summer-plan-year-select">Plan year</label>
+                        <select id="summer-plan-year-select" class="summer-plan-year-select" aria-label="Summer plan year">
+                            <option value="2027">Summer 2027</option>
+                            <option value="2026">Summer 2026</option>
+                        </select>
                         <p class="summer-plan-sidebar-subtitle">Planning Dashboard</p>
                     </div>
                 </div>
-                <nav id="summer-plan-child-filters" class="summer-plan-child-filters"></nav>
+                <nav id="summer-plan-child-filters" class="summer-plan-child-filters" aria-label="Filter by child"></nav>
                 <div id="summer-plan-cost-total-sidebar" class="summer-plan-cost-total summer-plan-cost-total--sidebar" aria-live="polite" hidden></div>
             </aside>
 
@@ -78,6 +82,13 @@
                         </div>
 
                         <div id="summer-plan-content-wrap" style="display:none;">
+                            <div id="summer-plan-year-empty" class="summer-plan-empty summer-plan-year-empty" style="display:none;">
+                                <h2>No camps for <span id="summer-plan-year-empty-year">2027</span></h2>
+                                <p>Add a camp to this year's plan, or switch years in the sidebar.</p>
+                                <a href="browse.html" class="btn-primary">Browse Camps</a>
+                            </div>
+
+                            <div id="summer-plan-views-panel">
                             <div class="summer-plan-toolbar">
                                 <div class="summer-plan-view-pill" role="group" aria-label="Plan view">
                                     <button type="button" class="summer-plan-tab active" data-view="calendar">Calendar</button>
@@ -107,6 +118,7 @@
                             <div id="summer-plan-calendar-view" class="summer-plan-calendar-view">
                                 <div id="summer-plan-calendar-weeks" class="summer-plan-calendar-weeks">
                                 </div>
+                            </div>
                             </div>
                         </div>
 

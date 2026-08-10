@@ -7,6 +7,7 @@ const SUMMER_PLAN_VIEW_KEY = 'summerPlanView';
 let allEntries = [];
 let cachedCampById = null;
 let activeChildFilter = 'all';
+let activePlanYear = DEFAULT_PLAN_YEAR;
 let knownChildNames = [];
 let summerPlanAuthEmail = '';
 
@@ -39,6 +40,17 @@ function buildChildFilterOptions(entries) {
     return { names };
 }
 
+function syncChildFilterToYearEntries(yearEntries) {
+    const names = distinctChildNamesFromEntries(yearEntries);
+    const active = String(activeChildFilter || 'all');
+    if (active === 'all' || active === 'unassigned') return;
+    const stillPresent = names.some((n) => n.toLowerCase() === active.toLowerCase());
+    if (!stillPresent) {
+        activeChildFilter = 'all';
+        setStoredChildFilter('all');
+    }
+}
+
 async function initSummerPlanPage() {
     const loginPrompt = document.getElementById('summer-plan-login-prompt');
     const emptyState = document.getElementById('summer-plan-empty-state');
@@ -58,7 +70,7 @@ async function initSummerPlanPage() {
         summerPlanAuthEmail = session.user.email || session.user.user_metadata?.email || '';
 
         allEntries = await getPlanEntries();
-        knownChildNames = distinctChildNamesFromEntries(allEntries);
+        activePlanYear = getStoredPlanYear();
         activeChildFilter = getStoredChildFilter();
 
         if (allEntries.length === 0) {
@@ -75,7 +87,8 @@ async function initSummerPlanPage() {
         const camps = await fetchCamps();
         cachedCampById = new Map(camps.map(c => [c.id, c]));
 
-        renderChildFilters(allEntries);
+        wireYearSwitcher();
+        updateYearChrome();
         refreshViews();
         wireViewTabs();
         applyPlanView(getStoredPlanView());
@@ -87,8 +100,65 @@ async function initSummerPlanPage() {
     }
 }
 
+function wireYearSwitcher() {
+    const select = document.getElementById('summer-plan-year-select');
+    if (!select || select.dataset.wired === '1') return;
+    select.dataset.wired = '1';
+    select.innerHTML = PLAN_YEARS.map(
+        (y) => `<option value="${y}">Summer ${y}</option>`
+    ).join('');
+    select.value = String(activePlanYear);
+    select.addEventListener('change', () => {
+        activePlanYear = normalizePlanYear(select.value);
+        setStoredPlanYear(activePlanYear);
+        updateYearChrome();
+        refreshViews();
+    });
+}
+
+function updateYearChrome() {
+    const select = document.getElementById('summer-plan-year-select');
+    if (select) select.value = String(activePlanYear);
+
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+        meta.setAttribute('content', `Your summer camp plan for ${activePlanYear}.`);
+    }
+}
+
 function refreshViews() {
-    const filtered = filterEntries(allEntries, activeChildFilter);
+    const yearEntries = filterEntriesByYear(allEntries, activePlanYear);
+    syncChildFilterToYearEntries(yearEntries);
+    knownChildNames = distinctChildNamesFromEntries(yearEntries);
+    renderChildFilters(yearEntries);
+
+    const yearEmpty = document.getElementById('summer-plan-year-empty');
+    const viewsPanel = document.getElementById('summer-plan-views-panel');
+    const hasYearEntries = yearEntries.length > 0;
+
+    if (yearEmpty) {
+        yearEmpty.style.display = hasYearEntries ? 'none' : 'block';
+        const yearLabel = document.getElementById('summer-plan-year-empty-year');
+        if (yearLabel) yearLabel.textContent = String(activePlanYear);
+    }
+    if (viewsPanel) {
+        viewsPanel.style.display = hasYearEntries ? 'block' : 'none';
+    }
+
+    // Cost total: hide when no camps for this year
+    if (!hasYearEntries) {
+        for (const id of ['summer-plan-cost-total-sidebar', 'summer-plan-cost-total-mobile']) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = '';
+                el.hidden = true;
+            }
+        }
+        document.querySelector('.summer-plan-page')?.classList.remove('summer-plan-has-mobile-total');
+        return;
+    }
+
+    const filtered = filterEntries(yearEntries, activeChildFilter);
     renderList(filtered, cachedCampById, knownChildNames);
     renderCalendar(filtered, cachedCampById);
     renderCostTotal(filtered, activeChildFilter);
@@ -398,13 +468,10 @@ function renderList(entries, campById, childNames) {
 function wireInlineEdit(childNames) {
     document.querySelectorAll('.summer-plan-edit-start').forEach(input => {
         input.addEventListener('change', async () => {
-            const id = input.dataset.entryId;
-            const row = document.querySelector(`tr[data-entry-id="${id}"]`);
+            const row = document.querySelector(`tr[data-entry-id="${input.dataset.entryId}"]`);
             const ok = await saveRowFromDom(row);
-            if (ok && row) {
-                const weekCell = row.querySelector('.summer-plan-cell-week');
-                if (weekCell) weekCell.textContent = formatWeekOf(input.value);
-            }
+            // Refresh so a cross-year date move drops the row without changing active year.
+            if (ok) await afterRowSaved();
         });
     });
 
@@ -484,8 +551,7 @@ async function saveRowFromDom(row, options = {}) {
 
 async function afterRowSaved() {
     allEntries = await getPlanEntries();
-    knownChildNames = distinctChildNamesFromEntries(allEntries);
-    renderChildFilters(allEntries);
+    // Keep activePlanYear; refreshViews re-scopes child filters and list/calendar.
     refreshViews();
 }
 
@@ -496,12 +562,10 @@ function wireRemoveButtons() {
             const ok = await removePlanEntry(id);
             if (ok) {
                 allEntries = allEntries.filter(e => e.id !== id);
-                knownChildNames = distinctChildNamesFromEntries(allEntries);
                 if (allEntries.length === 0) {
                     window.location.reload();
                     return;
                 }
-                renderChildFilters(allEntries);
                 refreshViews();
             }
         });
@@ -565,7 +629,7 @@ function renderCalendar(entries, campById) {
     const container = document.getElementById('summer-plan-calendar-weeks');
     if (!container) return;
 
-    const weeks = getSummerWeeks2026();
+    const weeks = getSummerWeeks(activePlanYear);
     const firstWeekByEntry = buildFirstWeekByEntryId(entries, weeks);
     container.innerHTML = '';
 

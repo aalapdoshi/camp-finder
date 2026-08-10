@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Added
+- Summer Plan multi-year: **2026** and **2027** via sidebar brand year select (default **2027**, persisted in `sessionStorage`). List, calendar, child filters, and cost totals scope to the selected year; soft empty state when that year has no camps. Add to Plan defaults start date to June 1 of the active/default year.
 - Summer Plan pickup/dropoff calendar: **Add pickup/dropoff to calendar ▾** on `booked` entries (list + calendar) with Google Calendar (up to two tabs), multi-event `.ics` download, and email invite (Resend). Modal shows Schedule Notes and user-entered dropoff/pickup times; events for each weekday in plan range, ±30 min (`America/Detroit`). Netlify function: `send-pickup-dropoff-calendar.js`.
 - Summer Plan registration calendar: **Add to Calendar ▼** on `want_to_book` entries (list + calendar) with Google Calendar link, `.ics` download, and email invite (Resend). Modal prefills registration date/time from camp catalog; event spans ±30 min around registration (`America/Detroit`). Netlify function: `send-registration-calendar.js`.
 - Summer Plan notes: optional note on Add to Plan modal; Notes column in list view (preview + Add/Edit link); calendar cards show truncated note with Add/Edit link; dedicated note modal with camp, child, and dates. Migration: `supabase/migrations/20260703220000_add_notes.sql`.
