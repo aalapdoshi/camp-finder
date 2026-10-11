@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PGXHQ4PY3C"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PGXHQ4PY3C');
+    </script>
+    <title>Privacy - A2CampFinder</title>
+    <meta name="description" content="What A2CampFinder keeps about you: your account, favorites, summer plan, feedback, and how to ask us to delete it.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">
+                    🏕️ A2CampFinder
+                </a>
+                <div class="nav-links">
+                    <a href="browse.html">Browse Camps</a>
+                    <a href="favorites.html">Favorites</a>
+                    <a href="summer-plan.html">Summer Plan</a>
+                    <a href="about.html">About</a>
+                    <span id="nav-auth">
+                        <a href="login.html">Log in</a>
+                        <a href="signup.html">Sign up</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="about-page">
+        <div class="container">
+            <header class="about-header">
+                <h1>Privacy</h1>
+            </header>
+
+            <section class="about-content">
+                <p>Last updated October 11, 2026.</p>
+
+                <p>A2CampFinder is a way for Ann Arbor families to look through a community summer camp list, save camps, and sketch a summer plan. This note says what we keep about you.</p>
+
+                <h2>The camp list</h2>
+
+                <p>Camp names, ages, prices, locations, and schedules on this site come from a community spreadsheet. That information is shown publicly. It is not connected to your account.</p>
+
+                <h2>Your account</h2>
+
+                <p>You can browse without signing in. If you create an account, you sign in with Google or Facebook. We receive the name and email address those services share with us. We do not keep a password for you.</p>
+
+                <h2>What you save</h2>
+
+                <p>When you are signed in, we store:</p>
+
+                <ul>
+                    <li>Camps you mark as favorites</li>
+                    <li>Summer plan entries: the camp, the dates, whether you marked it booked or want to book, a note if you add one, a cost if you type one in, and a child first name if you type one in so you can tell siblings apart</li>
+                </ul>
+
+                <p>Your favorites and summer plan are visible to you when you are signed in. We do not publish them.</p>
+
+                <h2>Calendar emails</h2>
+
+                <p>If you choose to email yourself a calendar invite, we send it to the email address on your account. The invite includes the camp name and times, and the child first name if you entered one. We send it only when you ask.</p>
+
+                <h2>Feedback</h2>
+
+                <p>The feedback button saves a star rating, any comment you type, and which page you were on. That submission is not attached to your account.</p>
+
+                <h2>How we see site use</h2>
+
+                <p>We use Google Analytics to see which pages people visit. That can include the page, the browser, and a general location. It does not include your summer plan or a child’s name.</p>
+
+                <h2>Who helps us run the site</h2>
+
+                <ul>
+                    <li>Supabase stores accounts, favorites, and summer plans</li>
+                    <li>Google and Facebook handle sign-in</li>
+                    <li>Google Analytics measures page visits</li>
+                    <li>Airtable stores the camp list and feedback</li>
+                    <li>Resend sends calendar emails you request</li>
+                    <li>Netlify hosts the site</li>
+                </ul>
+
+                <p>We do not sell this information.</p>
+
+                <h2>Removing your information</h2>
+
+                <p>Email <a href="mailto:hello@campfinder.com">hello@campfinder.com</a> and ask us to delete your account. We will delete your login, favorites, and summer plan. A feedback comment is not tied to your name, so include what you wrote if you want that removed too.</p>
+
+                <h2>Questions</h2>
+
+                <p>Email <a href="mailto:hello@campfinder.com">hello@campfinder.com</a>.</p>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>A2CampFinder</h4>
+                    <p>Helping Ann Arbor families find the perfect summer camp since 2026.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="browse.html">Browse Camps</a></li>
+                        <li><a href="favorites.html">Favorites</a></li>
+                        <li><a href="summer-plan.html">Summer Plan</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="privacy.html">Privacy</a></li>
+                        <li id="footer-auth">
+                            <a href="login.html">Log in</a>
+                            <a href="signup.html">Sign up</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p>Questions? Email us at<br>hello@campfinder.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 A2CampFinder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Feedback Floating Button -->
+    <button id="feedback-button" class="feedback-button" aria-label="Provide feedback">
+        💬 Feedback
+    </button>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-backdrop" class="feedback-backdrop"></div>
+    <div id="feedback-modal" class="feedback-modal" role="dialog" aria-labelledby="feedback-title" aria-modal="true">
+        <button id="feedback-close" class="feedback-close" aria-label="Close feedback form">×</button>
+        <h2 id="feedback-title" class="feedback-title">Share Your Feedback</h2>
+        <form id="feedback-form" class="feedback-form">
+            <div class="feedback-question">
+                <label for="feedback-rating">How helpful was A2CampFinder?</label>
+                <div class="rating-buttons" role="group" aria-label="Rating">
+                    <button type="button" class="rating-btn" aria-label="Rate 1 out of 5">1</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 2 out of 5">2</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 3 out of 5">3</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 4 out of 5">4</button>
+                    <button type="button" class="rating-btn" aria-label="Rate 5 out of 5">5</button>
+                </div>
+            </div>
+            <div class="feedback-question">
+                <label for="feedback-suggestions">Any suggestions? (optional)</label>
+                <textarea
+                    id="feedback-suggestions"
+                    name="suggestions"
+                    rows="4"
+                    placeholder="Share your thoughts, ideas, or suggestions..."
+                    class="feedback-textarea"
+                ></textarea>
+            </div>
+            <div id="feedback-error" class="feedback-error" style="display: none;"></div>
+            <div id="feedback-success" class="feedback-success" style="display: none;">
+                Thank you for your feedback! 🙏
+            </div>
+            <button type="submit" id="feedback-submit" class="feedback-submit">Submit Feedback</button>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/airtable.js"></script>
+    <script src="js/ai-chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/feedback.js"></script>
+    <script>
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => initAuth && initAuth());
+        } else {
+            initAuth && initAuth();
+        }
+    </script>
+</body>
+</html>
