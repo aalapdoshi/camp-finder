@@ -61,6 +61,17 @@
 - If files were already committed, they've been removed from git tracking
 - Your local files are safe - they just won't be in the repository
 
+### GitHub push auth (HTTPS + Classic token)
+
+Remote is HTTPS (`origin` → `https://github.com/aalapdoshi/camp-finder.git`). GitHub does **not** accept account passwords for `git push`.
+
+This project uses a **Classic personal access token** (not fine-grained):
+
+1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+2. Create a token with the `repo` scope (or regenerate if expired)
+3. When `git push` asks for a password, paste the **Classic token** (username = your GitHub username)
+4. macOS may store it in Keychain (`osxkeychain`). If push still fails with `Invalid username or token`, delete the old `github.com` entry in Keychain Access and push again so Git prompts for the new token
+
 ### Missing config.js
 - Copy `js/config.example.js` to `js/config.js`
 - Add your actual API keys

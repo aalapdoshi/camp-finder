@@ -1,5 +1,12 @@
 ## Unreleased
 
+### Fixed
+- Feedback form on `a2campfinder.com`: submit posted to `localhost:8888` because production was only detected via `netlify.app` / `netlify.com`. Now uses `/api/feedback` on any non-local host (same pattern as calendar email).
+
+### Changed
+- `SETUP.md`: document GitHub HTTPS push auth using a **Classic** personal access token (not account password / fine-grained).
+- `js/config.example.js`: treat `a2campfinder.com` and `netlify dev` (:8888) as API-proxy hosts (matches live `config.js`).
+
 ### Added
 - Camp detail freshness note under the action bar: details come from the community spreadsheet and may change; confirm on the camp’s website (or with the camp if no site); **Tell us** opens the feedback form.
 - Privacy page (`privacy.html`) linked from the footer on every page. Describes account data, favorites, summer plan, calendar emails, feedback, and Google Analytics, and how to ask for deletion.

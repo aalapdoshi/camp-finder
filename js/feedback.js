@@ -159,10 +159,13 @@ async function handleFeedbackSubmit(e) {
     const page = window.location.pathname.split('/').pop() || 'index.html';
 
     try {
-        // Determine API endpoint (Netlify or local)
-        const isNetlify = window.location.hostname.includes('netlify.app') || 
-                         window.location.hostname.includes('netlify.com');
-        const apiUrl = isNetlify ? '/api/feedback' : 'http://localhost:8888/.netlify/functions/feedback';
+        // Production (incl. a2campfinder.com) uses /api proxy; local needs netlify dev on :8888
+        const isLocal =
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
+        const apiUrl = isLocal
+            ? 'http://localhost:8888/.netlify/functions/feedback'
+            : '/api/feedback';
 
         const response = await fetch(apiUrl, {
             method: 'POST',
