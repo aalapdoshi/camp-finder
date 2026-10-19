@@ -91,12 +91,30 @@ async function initCampDetailPage() {
             detailEl.innerHTML = renderCampDetail(camp, { isSaved, isLoggedIn });
             if (isLoggedIn) wireFavoriteButton(detailEl, campId, isSaved);
             wireAddToPlanButton(detailEl, campId, camp.fields['Camp Name'] || 'Camp', camp.fields);
+            wireFreshnessFeedbackLink(detailEl);
         }
     } catch (error) {
         console.error('Error loading camp detail:', error);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl) errorEl.style.display = 'block';
     }
+}
+
+/**
+ * Wire "Tell us" on the freshness note to the feedback modal.
+ */
+function wireFreshnessFeedbackLink(container) {
+    const link = container.querySelector('.camp-detail-freshness-feedback');
+    if (!link) return;
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof openFeedbackModal === 'function') {
+            openFeedbackModal();
+            return;
+        }
+        const feedbackButton = document.getElementById('feedback-button');
+        if (feedbackButton) feedbackButton.click();
+    });
 }
 
 /**
@@ -297,6 +315,17 @@ function renderCampDetail(camp, options = {}) {
             ${favoriteButtonHtml}
             ${addToPlanButtonHtml}
         </div>
+
+        <p class="camp-detail-freshness">
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+            <span>
+                Camp details come from a community spreadsheet and can change.
+                ${website
+                    ? 'Confirm dates, prices, and registration times on the camp’s website before you register.'
+                    : 'Confirm dates, prices, and registration times with the camp directly before you register.'}
+                See something wrong? <a href="#feedback" class="camp-detail-freshness-feedback">Tell us.</a>
+            </span>
+        </p>
 
         <div class="camp-detail-columns">
             <div class="camp-detail-main">

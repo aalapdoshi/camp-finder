@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Added
+- Camp detail freshness note under the action bar: details come from the community spreadsheet and may change; confirm on the camp’s website (or with the camp if no site); **Tell us** opens the feedback form.
 - Privacy page (`privacy.html`) linked from the footer on every page. Describes account data, favorites, summer plan, calendar emails, feedback, and Google Analytics, and how to ask for deletion.
 - Summer Plan multi-year: **2026** and **2027** via sidebar brand year select (default **2027**, persisted in `sessionStorage`). List, calendar, child filters, and cost totals scope to the selected year; soft empty state when that year has no camps. Add to Plan defaults start date to June 1 of the active/default year.
 - Summer Plan pickup/dropoff calendar: **Add pickup/dropoff to calendar ▾** on `booked` entries (list + calendar) with Google Calendar (up to two tabs), multi-event `.ics` download, and email invite (Resend). Modal shows Schedule Notes and user-entered dropoff/pickup times; events for each weekday in plan range, ±30 min (`America/Detroit`). Netlify function: `send-pickup-dropoff-calendar.js`.
