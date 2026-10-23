@@ -143,13 +143,15 @@ exports.handler = async (event) => {
     const filename = getIcsFilename(params.campName, params.childName);
     const subject = `Registration reminder: ${title.replace(/^Register /, '')}`;
 
+    const whenLabel = formatEmailWhen(params.registrationDate, params.registrationTime);
     const htmlBody = `
         <p>Your registration reminder for <strong>${escapeHtml(params.campName)}</strong> is attached.</p>
-        <p>Open the <strong>.ics</strong> file to add it to your calendar, or use the link in the invite.</p>
+        <p>Registration opens <strong>${escapeHtml(whenLabel)}</strong>. The calendar event starts 30 minutes before and ends 30 minutes after.</p>
+        <p>Open the <strong>.ics</strong> file to add it to your calendar.</p>
         ${params.registrationUrl ? `<p><a href="${escapeHtml(params.registrationUrl)}">Registration page</a></p>` : ''}
         ${params.campDetailUrl ? `<p><a href="${escapeHtml(params.campDetailUrl)}">Camp details on A2CampFinder</a></p>` : ''}
     `.trim();
-    const textBody = `Your registration reminder for ${params.campName} is attached as a calendar file (.ics).`;
+    const textBody = `Your registration reminder for ${params.campName} is attached. Registration opens ${whenLabel} (America/Detroit).`;
 
     try {
         const result = await sendCalendarInviteEmail({
@@ -183,6 +185,18 @@ exports.handler = async (event) => {
         };
     }
 };
+
+function formatEmailWhen(dateStr, timeStr) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const h12 = ((hours + 11) % 12) + 1;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    return `${months[month - 1]} ${day}, ${year} at ${h12}:${String(minutes).padStart(2, '0')} ${ampm} (America/Detroit)`;
+}
 
 function escapeHtml(str) {
     return String(str || '')

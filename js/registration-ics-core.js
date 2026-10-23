@@ -99,13 +99,22 @@ function getZonedParts(date, timeZone) {
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
+        hourCycle: 'h23'
     });
     const map = {};
     for (const p of dtf.formatToParts(date)) {
         if (p.type !== 'literal') map[p.type] = parseInt(p.value, 10);
     }
-    return map;
+    // Intl uses hour/minute; the rest of this file uses hours/minutes.
+    let hours = map.hour;
+    if (hours === 24) hours = 0;
+    return {
+        year: map.year || 0,
+        month: map.month || 0,
+        day: map.day || 0,
+        hours: Number.isFinite(hours) ? hours : 0,
+        minutes: Number.isFinite(map.minute) ? map.minute : 0
+    };
 }
 
 /** @param {object} a @param {object} b */
@@ -188,6 +197,29 @@ function formatIcsLocalDateTime(p) {
         String(p.minutes).padStart(2, '0') +
         '00'
     );
+}
+
+/** America/Detroit VTIMEZONE so mail clients honor TZID (EST/EDT). */
+function icsVTimezoneLines() {
+    return [
+        'BEGIN:VTIMEZONE',
+        `TZID:${REGISTRATION_CALENDAR_TZ}`,
+        'BEGIN:DAYLIGHT',
+        'TZOFFSETFROM:-0500',
+        'TZOFFSETTO:-0400',
+        'TZNAME:EDT',
+        'DTSTART:19700308T020000',
+        'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+        'END:DAYLIGHT',
+        'BEGIN:STANDARD',
+        'TZOFFSETFROM:-0400',
+        'TZOFFSETTO:-0500',
+        'TZNAME:EST',
+        'DTSTART:19701101T020000',
+        'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+        'END:STANDARD',
+        'END:VTIMEZONE'
+    ];
 }
 
 /** @param {number} ms */
@@ -277,6 +309,7 @@ function buildRegistrationIcs(params) {
         'PRODID:-//A2CampFinder//Registration Reminder//EN',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
+        ...icsVTimezoneLines(),
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `DTSTAMP:${now}`,
@@ -518,6 +551,7 @@ function buildPickupDropoffIcs(events) {
         'PRODID:-//A2CampFinder//Pickup Dropoff Reminder//EN',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
+        ...icsVTimezoneLines(),
         ...vevents,
         'END:VCALENDAR'
     ].join('\r\n') + '\r\n';
