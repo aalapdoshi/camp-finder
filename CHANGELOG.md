@@ -4,6 +4,7 @@
 - Feedback form on `a2campfinder.com`: submit posted to `localhost:8888` because production was only detected via `netlify.app` / `netlify.com`. Now uses `/api/feedback` on any non-local host (same pattern as calendar email).
 
 ### Changed
+- Contact email: footer and privacy page now use **a2summercamp@umich.edu** (was hello@campfinder.com).
 - `SETUP.md`: document GitHub HTTPS push auth using a **Classic** personal access token (not account password / fine-grained).
 - `js/config.example.js`: treat `a2campfinder.com` and `netlify dev` (:8888) as API-proxy hosts (matches live `config.js`).
 
