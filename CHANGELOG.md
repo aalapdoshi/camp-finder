@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Fixed
+- Summer Plan calendar weeks now start on Monday. 2027 (June 1 is a Tuesday) previously used Tuesday–Monday rows, so Mon–Fri camps appeared under the previous week heading.
 - Registration calendar invite time: `.ics` wrote `Tundefinedundefined00` (Intl `hour`/`minute` vs `hours`/`minutes`), so Gmail showed midnight. Events now use Detroit wall time; email body states the time. Pickup/dropoff `.ics` uses the same helper.
 - Feedback form on `a2campfinder.com`: submit posted to `localhost:8888` because production was only detected via `netlify.app` / `netlify.com`. Now uses `/api/feedback` on any non-local host (same pattern as calendar email).
 

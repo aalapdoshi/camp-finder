@@ -21,7 +21,7 @@ Add **2026 and 2027** support on the Summer Plan page. **2027 is the default** y
 ## Tasks
 
 - [x] 🟩 **Step 1: Year helpers in `js/summer-plan.js`**
-  - [x] 🟩 Replace `getSummerWeeks2026()` with `getSummerWeeks(year)` (Jun 1 – Aug 31 of that year)
+  - [x] 🟩 Replace `getSummerWeeks2026()` with `getSummerWeeks(year)` (Monday-aligned weeks covering Jun 1 – Aug 31)
   - [x] 🟩 Add constants: allowed years `[2026, 2027]`, `DEFAULT_PLAN_YEAR = 2027`
   - [x] 🟩 Add helpers: `yearFromDate(isoDate)`, `filterEntriesByYear(entries, year)`, `defaultSummerStartDate(year)` (e.g. June 1)
 

@@ -420,23 +420,34 @@ function resolveAddToPlanDefaultYear(options) {
     return DEFAULT_PLAN_YEAR;
 }
 
-/** Week rows for Jun 1 – Aug 31 of the given year. */
+/** YYYY-MM-DD from local calendar fields (noon dates; avoids UTC day shift). */
+function toLocalIsoDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/**
+ * Monday–Sunday week rows covering Jun 1 – Aug 31 of the given year.
+ * Starts on the Monday on or before June 1 so a Tuesday June 1 (e.g. 2027)
+ * does not shift every heading and file Mon–Fri camps under the previous week.
+ */
 function getSummerWeeks(year) {
     const y = normalizePlanYear(year);
     const weeks = [];
-    let d = new Date(`${y}-06-01`);
-    const end = new Date(`${y}-08-31`);
+    const summerEnd = new Date(`${y}-08-31T12:00:00`);
+    let d = new Date(`${y}-06-01T12:00:00`);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
 
-    while (d <= end) {
-        const mon = new Date(d);
-        const sun = new Date(mon);
+    while (d <= summerEnd) {
+        const sun = new Date(d);
         sun.setDate(sun.getDate() + 6);
-        const startStr = mon.toISOString().slice(0, 10);
-        const endStr = sun.toISOString().slice(0, 10);
+        const startStr = toLocalIsoDate(d);
         weeks.push({
             label: formatWeekOf(startStr),
             startDate: startStr,
-            endDate: endStr
+            endDate: toLocalIsoDate(sun)
         });
         d.setDate(d.getDate() + 7);
     }
