@@ -88,10 +88,21 @@
                     </div>
 
                     <div class="browse-filter-group">
-                        <label for="browse-city">City</label>
-                        <select id="browse-city">
-                            <option value="all">All cities</option>
-                        </select>
+                        <span class="browse-filter-label" id="browse-city-label">City</span>
+                        <div class="browse-city-dropdown">
+                            <button
+                                type="button"
+                                id="browse-city-button"
+                                class="browse-city-button"
+                                aria-expanded="false"
+                                aria-controls="browse-city-panel"
+                                aria-labelledby="browse-city-label browse-city-button-text"
+                            >
+                                <span id="browse-city-button-text" class="browse-city-button-text">All cities</span>
+                                <span class="browse-city-chevron" aria-hidden="true">▾</span>
+                            </button>
+                            <div id="browse-city-panel" class="browse-city-panel" hidden></div>
+                        </div>
                     </div>
 
                     <div class="browse-filter-group">

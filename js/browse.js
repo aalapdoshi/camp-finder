@@ -6,18 +6,18 @@ let browseFilters = {
     searchQuery: '',
     age: '',
     maxPrice: '',
-    city: 'all',
+    cities: [],
     category: 'all',
     afterCare: false,
 };
 
 let browseSearchTimeout = null;
+const ALL_CITIES_LABEL = 'All cities';
 
 async function initBrowsePage() {
     const searchInput = document.getElementById('browse-search');
     const ageInput = document.getElementById('browse-age');
     const maxPriceInput = document.getElementById('browse-max-price');
-    const citySelect = document.getElementById('browse-city');
     const categorySelect = document.getElementById('browse-category');
     const afterCareCheckbox = document.getElementById('browse-aftercare');
     const clearBtn = document.getElementById('browse-clear');
@@ -40,15 +40,7 @@ async function initBrowsePage() {
             getCategories()
         ]);
 
-        // Populate dropdowns
-        if (citySelect) {
-            cities.forEach(city => {
-                const opt = document.createElement('option');
-                opt.value = city;
-                opt.textContent = city;
-                citySelect.appendChild(opt);
-            });
-        }
+        populateCityDropdown(cities);
 
         if (categorySelect) {
             categories.forEach(cat => {
@@ -107,13 +99,6 @@ async function initBrowsePage() {
             });
         }
 
-        if (citySelect) {
-            citySelect.addEventListener('change', () => {
-                browseFilters.city = citySelect.value;
-                applyBrowseFiltersAndRender();
-            });
-        }
-
         if (categorySelect) {
             categorySelect.addEventListener('change', () => {
                 browseFilters.category = categorySelect.value;
@@ -133,7 +118,7 @@ async function initBrowsePage() {
                 searchQuery: '',
                 age: '',
                 maxPrice: '',
-                city: 'all',
+                cities: [],
                 category: 'all',
                 afterCare: false,
             };
@@ -141,7 +126,7 @@ async function initBrowsePage() {
             if (searchInput) searchInput.value = '';
             if (ageInput) ageInput.value = '';
             if (maxPriceInput) maxPriceInput.value = '';
-            if (citySelect) citySelect.value = 'all';
+            resetCityDropdown();
             if (categorySelect) categorySelect.value = 'all';
             if (afterCareCheckbox) afterCareCheckbox.checked = false;
 
@@ -221,6 +206,108 @@ function applyBrowseFiltersAndRender() {
         const card = createCampCard(camp, { isSaved, variant: 'rich' });
         resultsContainer.appendChild(card);
     });
+}
+
+function getCityDropdownEls() {
+    return {
+        button: document.getElementById('browse-city-button'),
+        buttonText: document.getElementById('browse-city-button-text'),
+        panel: document.getElementById('browse-city-panel'),
+    };
+}
+
+function isCityDropdownOpen() {
+    const { panel } = getCityDropdownEls();
+    return !!(panel && !panel.hidden);
+}
+
+function setCityButtonLabel(cities) {
+    const { button, buttonText } = getCityDropdownEls();
+    const label = cities.length ? cities.join(', ') : ALL_CITIES_LABEL;
+    if (buttonText) buttonText.textContent = label;
+    if (button) button.title = label;
+}
+
+function closeCityDropdown(options = {}) {
+    const { button, panel } = getCityDropdownEls();
+    if (!button || !panel || panel.hidden) return;
+    panel.hidden = true;
+    button.setAttribute('aria-expanded', 'false');
+    if (options.restoreFocus) button.focus();
+}
+
+function toggleCityDropdown() {
+    const { button, panel } = getCityDropdownEls();
+    if (!button || !panel) return;
+    const willOpen = panel.hidden;
+    if (willOpen) {
+        panel.hidden = false;
+        button.setAttribute('aria-expanded', 'true');
+    } else {
+        closeCityDropdown();
+    }
+}
+
+function selectedCitiesFromPanel() {
+    const { panel } = getCityDropdownEls();
+    if (!panel) return [];
+    return Array.from(panel.querySelectorAll('input[type="checkbox"]:checked')).map((el) => el.value);
+}
+
+function onCityCheckboxChange() {
+    browseFilters.cities = selectedCitiesFromPanel();
+    setCityButtonLabel(browseFilters.cities);
+    applyBrowseFiltersAndRender();
+}
+
+function populateCityDropdown(cities) {
+    const { button, panel } = getCityDropdownEls();
+    if (!panel) return;
+
+    panel.innerHTML = '';
+    (cities || []).forEach((city, i) => {
+        const id = `browse-city-${i}`;
+        const label = document.createElement('label');
+        label.className = 'browse-city-option';
+        label.htmlFor = id;
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.id = id;
+        input.name = 'browse-city';
+        input.value = city;
+        input.addEventListener('change', onCityCheckboxChange);
+
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(city));
+        panel.appendChild(label);
+    });
+
+    setCityButtonLabel(browseFilters.cities);
+
+    if (button && !button.dataset.cityDropdownWired) {
+        button.dataset.cityDropdownWired = '1';
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCityDropdown();
+        });
+        panel.addEventListener('click', (e) => e.stopPropagation());
+        document.addEventListener('click', () => closeCityDropdown());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isCityDropdownOpen()) {
+                closeCityDropdown({ restoreFocus: true });
+            }
+        });
+    }
+}
+
+function resetCityDropdown() {
+    const { panel } = getCityDropdownEls();
+    panel?.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+        el.checked = false;
+    });
+    setCityButtonLabel([]);
+    closeCityDropdown();
 }
 
 if (document.readyState === 'loading') {

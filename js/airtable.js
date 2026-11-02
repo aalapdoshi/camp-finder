@@ -177,9 +177,10 @@ function filterCamps(camps, filters) {
             }
         }
 
-        // Location filter
-        if (filters.city && filters.city !== 'all') {
-            if (fields['City'] !== filters.city) {
+        // Location filter (OR): empty/missing cities = all cities
+        const selectedCities = Array.isArray(filters.cities) ? filters.cities : [];
+        if (selectedCities.length > 0) {
+            if (!selectedCities.includes(fields['City'])) {
                 return false;
             }
         }
