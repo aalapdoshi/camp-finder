@@ -42,9 +42,6 @@
                     <button type="button" id="auth-google" class="btn-auth btn-auth-google">
                         Sign up with Google
                     </button>
-                    <button type="button" id="auth-facebook" class="btn-auth btn-auth-facebook">
-                        Sign up with Facebook
-                    </button>
                 </div>
                 <p class="auth-link-text">
                     Already have an account? <a href="login.html">Log in</a>
@@ -93,7 +90,6 @@
             const redirectTo = params.get('redirectTo') || null;
 
             document.getElementById('auth-google').addEventListener('click', () => signInWithGoogle(redirectTo));
-            document.getElementById('auth-facebook').addEventListener('click', () => signInWithFacebook(redirectTo));
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initAuth);

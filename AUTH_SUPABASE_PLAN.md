@@ -4,12 +4,12 @@
 
 ## TLDR
 
-Add user authentication to A2CampFinder using Supabase Auth with Google and Facebook sign-in. Separate login and signup pages, auth links in header and footer. Default Supabase URLs (no custom domain). Saved camps feature deferred to a later phase.
+Add user authentication to A2CampFinder using Supabase Auth with Google sign-in. Separate login and signup pages, auth links in header and footer. Default Supabase URLs (no custom domain). Saved camps feature deferred to a later phase.
 
 ## Critical Decisions
 
 - **Auth provider: Supabase Auth** – Single provider for auth (and future saved camps DB), generous free tier, Netlify integration
-- **Social providers: Google + Facebook** – Start with social login; email/password can be added later
+- **Social provider: Google only** – Facebook login removed; email/password can be added later
 - **Separate login and signup pages** – `login.html` and `signup.html`, with links between them
 - **Default Supabase URLs** – No custom auth domain for now
 - **Auth links in nav + footer** – Login/Sign up when logged out; user email + Log out when logged in
@@ -20,7 +20,7 @@ Add user authentication to A2CampFinder using Supabase Auth with Google and Face
 - [ ] 🟥 Create Supabase project at [supabase.com](https://supabase.com)
 - [ ] 🟥 Install Netlify Supabase integration (Extensions → Supabase → Install → Connect to site)
 - [ ] 🟥 Enable Google provider in Supabase: Authentication → Providers → Google (add Client ID + Secret from Google Cloud Console)
-- [ ] 🟥 Enable Facebook provider in Supabase: Authentication → Providers → Facebook (add App ID + Secret from Meta Developer)
+- [x] ⬛ Facebook provider: **not used** — leave off in Supabase (login/signup are Google only)
 - [ ] 🟥 Add redirect URLs in Supabase: Authentication → URL Configuration → Redirect URLs: `https://a2campfinder.com/**`, `https://a2campfinder.com`, `http://localhost:8888/**`, `http://localhost:8888`
 
 ## Tasks
@@ -29,14 +29,14 @@ Add user authentication to A2CampFinder using Supabase Auth with Google and Face
 
 - [x] 🟩 **1.1** Create `js/auth-config.js` with `SUPABASE_URL` and `SUPABASE_ANON_KEY` (user adds values from Supabase dashboard; anon key is safe to expose client-side)
 - [x] 🟩 **1.2** Load Supabase via CDN on auth pages and all main pages
-- [x] 🟩 **1.3** Create `js/auth.js` with: `initSupabase()`, `signInWithGoogle()`, `signInWithFacebook()`, `signOut()`, `getSession()`, `onAuthStateChange()`, `initAuth()`
+- [x] 🟩 **1.3** Create `js/auth.js` with: `initSupabase()`, `signInWithGoogle()`, `signOut()`, `getSession()`, `onAuthStateChange()`, `initAuth()`
 
 ### Step 2: Create login and signup pages
 
-- [x] 🟩 **2.1** Create `login.html` with: heading "Log in", Google button, Facebook button, link to signup ("Don't have an account? Sign up")
-- [x] 🟩 **2.2** Create `signup.html` with: heading "Sign up", Google button, Facebook button, link to login ("Already have an account? Log in")
+- [x] 🟩 **2.1** Create `login.html` with: heading "Log in", Google button, link to signup ("Don't have an account? Sign up")
+- [x] 🟩 **2.2** Create `signup.html` with: heading "Sign up", Google button, link to login ("Already have an account? Log in")
 - [x] 🟩 **2.3** Style both pages to match existing site (reuse `styles.css`, `.auth-page`, `.auth-card`, `.btn-auth`)
-- [x] 🟩 **2.4** Wire buttons to `signInWithGoogle()` and `signInWithFacebook()`; redirect to `index.html` after successful auth (with `redirectTo` param support)
+- [x] 🟩 **2.4** Wire the Google button to `signInWithGoogle()`; redirect to `index.html` after successful auth (with `redirectTo` param support)
 
 ### Step 3: Handle OAuth redirect callback
 
@@ -64,7 +64,7 @@ Add user authentication to A2CampFinder using Supabase Auth with Google and Face
 ### Step 7: Testing and verification
 
 - [ ] 🟥 **7.1** Test Google sign-in flow locally and on production
-- [ ] 🟥 **7.2** Test Facebook sign-in flow locally and on production
+- [x] ⬛ **7.2** Facebook sign-in: **removed** — do not test; provider stays off
 - [ ] 🟥 **7.3** Test sign-out and session persistence across page navigations
 - [ ] 🟥 **7.4** Verify nav/footer correctly show logged-in vs logged-out state
 

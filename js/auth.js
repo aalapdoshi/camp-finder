@@ -45,19 +45,6 @@ async function signInWithGoogle(targetPage) {
 }
 
 /**
- * Sign in with Facebook OAuth. Redirects to Facebook, then back to index.html (and optionally targetPage).
- * @param {string} [targetPage] - Page to redirect to after auth (e.g. 'browse.html')
- */
-async function signInWithFacebook(targetPage) {
-    const client = initSupabase();
-    if (!client) return;
-    await client.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: { redirectTo: getOAuthRedirectUrl(targetPage) }
-    });
-}
-
-/**
  * Sign out the current user.
  */
 async function signOut() {
