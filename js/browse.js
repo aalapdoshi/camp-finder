@@ -7,18 +7,19 @@ let browseFilters = {
     age: '',
     maxPrice: '',
     cities: [],
-    category: 'all',
+    categories: [],
     afterCare: false,
 };
 
 let browseSearchTimeout = null;
+let multiDropdownListenersReady = false;
 const ALL_CITIES_LABEL = 'All cities';
+const ALL_CATEGORIES_LABEL = 'All categories';
 
 async function initBrowsePage() {
     const searchInput = document.getElementById('browse-search');
     const ageInput = document.getElementById('browse-age');
     const maxPriceInput = document.getElementById('browse-max-price');
-    const categorySelect = document.getElementById('browse-category');
     const afterCareCheckbox = document.getElementById('browse-aftercare');
     const clearBtn = document.getElementById('browse-clear');
     const clearBtn2 = document.getElementById('browse-clear-2');
@@ -40,16 +41,8 @@ async function initBrowsePage() {
             getCategories()
         ]);
 
-        populateCityDropdown(cities);
-
-        if (categorySelect) {
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                categorySelect.appendChild(opt);
-            });
-        }
+        populateMultiDropdown('city', cities);
+        populateMultiDropdown('category', categories);
 
         // Seed from localStorage (quickSearch/category cards)
         const storedSearch = localStorage.getItem('searchQuery');
@@ -62,9 +55,8 @@ async function initBrowsePage() {
             localStorage.removeItem('searchQuery');
         }
 
-        if (storedCategory && categorySelect) {
-            browseFilters.category = storedCategory;
-            categorySelect.value = storedCategory;
+        if (storedCategory) {
+            seedMultiDropdown('category', storedCategory);
             localStorage.removeItem('categoryFilter');
         }
 
@@ -99,13 +91,6 @@ async function initBrowsePage() {
             });
         }
 
-        if (categorySelect) {
-            categorySelect.addEventListener('change', () => {
-                browseFilters.category = categorySelect.value;
-                applyBrowseFiltersAndRender();
-            });
-        }
-
         if (afterCareCheckbox) {
             afterCareCheckbox.addEventListener('change', () => {
                 browseFilters.afterCare = afterCareCheckbox.checked;
@@ -119,15 +104,15 @@ async function initBrowsePage() {
                 age: '',
                 maxPrice: '',
                 cities: [],
-                category: 'all',
+                categories: [],
                 afterCare: false,
             };
 
             if (searchInput) searchInput.value = '';
             if (ageInput) ageInput.value = '';
             if (maxPriceInput) maxPriceInput.value = '';
-            resetCityDropdown();
-            if (categorySelect) categorySelect.value = 'all';
+            resetMultiDropdown('city');
+            resetMultiDropdown('category');
             if (afterCareCheckbox) afterCareCheckbox.checked = false;
 
             applyBrowseFiltersAndRender();
@@ -208,106 +193,151 @@ function applyBrowseFiltersAndRender() {
     });
 }
 
-function getCityDropdownEls() {
+function multiDropdownKind(kind) {
+    return kind === 'category' ? 'category' : 'city';
+}
+
+function multiDropdownFilterKey(kind) {
+    return multiDropdownKind(kind) === 'category' ? 'categories' : 'cities';
+}
+
+function multiDropdownAllLabel(kind) {
+    return multiDropdownKind(kind) === 'category' ? ALL_CATEGORIES_LABEL : ALL_CITIES_LABEL;
+}
+
+function otherMultiDropdownKind(kind) {
+    return multiDropdownKind(kind) === 'category' ? 'city' : 'category';
+}
+
+function getMultiDropdownEls(kind) {
+    const k = multiDropdownKind(kind);
     return {
-        button: document.getElementById('browse-city-button'),
-        buttonText: document.getElementById('browse-city-button-text'),
-        panel: document.getElementById('browse-city-panel'),
+        button: document.getElementById(`browse-${k}-button`),
+        buttonText: document.getElementById(`browse-${k}-button-text`),
+        panel: document.getElementById(`browse-${k}-panel`),
     };
 }
 
-function isCityDropdownOpen() {
-    const { panel } = getCityDropdownEls();
+function isMultiDropdownOpen(kind) {
+    const { panel } = getMultiDropdownEls(kind);
     return !!(panel && !panel.hidden);
 }
 
-function setCityButtonLabel(cities) {
-    const { button, buttonText } = getCityDropdownEls();
-    const label = cities.length ? cities.join(', ') : ALL_CITIES_LABEL;
+function setMultiButtonLabel(kind, values) {
+    const { button, buttonText } = getMultiDropdownEls(kind);
+    const label = values.length ? values.join(', ') : multiDropdownAllLabel(kind);
     if (buttonText) buttonText.textContent = label;
     if (button) button.title = label;
 }
 
-function closeCityDropdown(options = {}) {
-    const { button, panel } = getCityDropdownEls();
+function closeMultiDropdown(kind, options = {}) {
+    const { button, panel } = getMultiDropdownEls(kind);
     if (!button || !panel || panel.hidden) return;
     panel.hidden = true;
     button.setAttribute('aria-expanded', 'false');
     if (options.restoreFocus) button.focus();
 }
 
-function toggleCityDropdown() {
-    const { button, panel } = getCityDropdownEls();
+function toggleMultiDropdown(kind) {
+    const { button, panel } = getMultiDropdownEls(kind);
     if (!button || !panel) return;
     const willOpen = panel.hidden;
     if (willOpen) {
+        closeMultiDropdown(otherMultiDropdownKind(kind));
         panel.hidden = false;
         button.setAttribute('aria-expanded', 'true');
     } else {
-        closeCityDropdown();
+        closeMultiDropdown(kind);
     }
 }
 
-function selectedCitiesFromPanel() {
-    const { panel } = getCityDropdownEls();
+function selectedValuesFromPanel(kind) {
+    const { panel } = getMultiDropdownEls(kind);
     if (!panel) return [];
     return Array.from(panel.querySelectorAll('input[type="checkbox"]:checked')).map((el) => el.value);
 }
 
-function onCityCheckboxChange() {
-    browseFilters.cities = selectedCitiesFromPanel();
-    setCityButtonLabel(browseFilters.cities);
+function onMultiCheckboxChange(kind) {
+    const key = multiDropdownFilterKey(kind);
+    browseFilters[key] = selectedValuesFromPanel(kind);
+    setMultiButtonLabel(kind, browseFilters[key]);
     applyBrowseFiltersAndRender();
 }
 
-function populateCityDropdown(cities) {
-    const { button, panel } = getCityDropdownEls();
+function ensureMultiDropdownListeners() {
+    if (multiDropdownListenersReady) return;
+    multiDropdownListenersReady = true;
+    document.addEventListener('click', () => {
+        closeMultiDropdown('city');
+        closeMultiDropdown('category');
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (isMultiDropdownOpen('city')) {
+            closeMultiDropdown('city', { restoreFocus: true });
+        } else if (isMultiDropdownOpen('category')) {
+            closeMultiDropdown('category', { restoreFocus: true });
+        }
+    });
+}
+
+function populateMultiDropdown(kind, values) {
+    const k = multiDropdownKind(kind);
+    const { button, panel } = getMultiDropdownEls(k);
     if (!panel) return;
 
     panel.innerHTML = '';
-    (cities || []).forEach((city, i) => {
-        const id = `browse-city-${i}`;
+    (values || []).forEach((value, i) => {
+        const id = `browse-${k}-${i}`;
         const label = document.createElement('label');
-        label.className = 'browse-city-option';
+        label.className = 'browse-multi-option';
         label.htmlFor = id;
 
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.id = id;
-        input.name = 'browse-city';
-        input.value = city;
-        input.addEventListener('change', onCityCheckboxChange);
+        input.name = `browse-${k}`;
+        input.value = value;
+        input.addEventListener('change', () => onMultiCheckboxChange(k));
 
         label.appendChild(input);
-        label.appendChild(document.createTextNode(city));
+        label.appendChild(document.createTextNode(value));
         panel.appendChild(label);
     });
 
-    setCityButtonLabel(browseFilters.cities);
+    const key = multiDropdownFilterKey(k);
+    setMultiButtonLabel(k, browseFilters[key]);
 
-    if (button && !button.dataset.cityDropdownWired) {
-        button.dataset.cityDropdownWired = '1';
+    if (button && !button.dataset.multiDropdownWired) {
+        button.dataset.multiDropdownWired = '1';
         button.addEventListener('click', (e) => {
             e.stopPropagation();
-            toggleCityDropdown();
+            toggleMultiDropdown(k);
         });
         panel.addEventListener('click', (e) => e.stopPropagation());
-        document.addEventListener('click', () => closeCityDropdown());
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isCityDropdownOpen()) {
-                closeCityDropdown({ restoreFocus: true });
-            }
-        });
+        ensureMultiDropdownListeners();
     }
 }
 
-function resetCityDropdown() {
-    const { panel } = getCityDropdownEls();
+function seedMultiDropdown(kind, value) {
+    const { panel } = getMultiDropdownEls(kind);
+    if (!panel || !value) return;
+    const input = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
+        .find((el) => el.value === value);
+    if (!input) return;
+    input.checked = true;
+    onMultiCheckboxChange(kind);
+}
+
+function resetMultiDropdown(kind) {
+    const { panel } = getMultiDropdownEls(kind);
     panel?.querySelectorAll('input[type="checkbox"]').forEach((el) => {
         el.checked = false;
     });
-    setCityButtonLabel([]);
-    closeCityDropdown();
+    const key = multiDropdownFilterKey(kind);
+    browseFilters[key] = [];
+    setMultiButtonLabel(kind, []);
+    closeMultiDropdown(kind);
 }
 
 if (document.readyState === 'loading') {

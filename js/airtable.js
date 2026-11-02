@@ -185,9 +185,10 @@ function filterCamps(camps, filters) {
             }
         }
 
-        // Category filter
-        if (filters.category && filters.category !== 'all') {
-            if (fields['Primary Category'] !== filters.category) {
+        // Category filter (OR): empty/missing categories = all categories
+        const selectedCategories = Array.isArray(filters.categories) ? filters.categories : [];
+        if (selectedCategories.length > 0) {
+            if (!selectedCategories.includes(fields['Primary Category'])) {
                 return false;
             }
         }

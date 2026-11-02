@@ -89,27 +89,38 @@
 
                     <div class="browse-filter-group">
                         <span class="browse-filter-label" id="browse-city-label">City</span>
-                        <div class="browse-city-dropdown">
+                        <div class="browse-multi-dropdown">
                             <button
                                 type="button"
                                 id="browse-city-button"
-                                class="browse-city-button"
+                                class="browse-multi-button"
                                 aria-expanded="false"
                                 aria-controls="browse-city-panel"
                                 aria-labelledby="browse-city-label browse-city-button-text"
                             >
-                                <span id="browse-city-button-text" class="browse-city-button-text">All cities</span>
-                                <span class="browse-city-chevron" aria-hidden="true">▾</span>
+                                <span id="browse-city-button-text" class="browse-multi-button-text">All cities</span>
+                                <span class="browse-multi-chevron" aria-hidden="true">▾</span>
                             </button>
-                            <div id="browse-city-panel" class="browse-city-panel" hidden></div>
+                            <div id="browse-city-panel" class="browse-multi-panel" hidden></div>
                         </div>
                     </div>
 
                     <div class="browse-filter-group">
-                        <label for="browse-category">Category</label>
-                        <select id="browse-category">
-                            <option value="all">All categories</option>
-                        </select>
+                        <span class="browse-filter-label" id="browse-category-label">Category</span>
+                        <div class="browse-multi-dropdown">
+                            <button
+                                type="button"
+                                id="browse-category-button"
+                                class="browse-multi-button"
+                                aria-expanded="false"
+                                aria-controls="browse-category-panel"
+                                aria-labelledby="browse-category-label browse-category-button-text"
+                            >
+                                <span id="browse-category-button-text" class="browse-multi-button-text">All categories</span>
+                                <span class="browse-multi-chevron" aria-hidden="true">▾</span>
+                            </button>
+                            <div id="browse-category-panel" class="browse-multi-panel" hidden></div>
+                        </div>
                     </div>
 
                     <div class="browse-filter-group browse-filter-aftercare">

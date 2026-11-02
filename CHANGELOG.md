@@ -14,7 +14,7 @@
 - `js/config.example.js`: treat `a2campfinder.com` and `netlify dev` (:8888) as API-proxy hosts (matches live `config.js`).
 
 ### Added
-- Browse City filter: pick multiple cities from a dropdown of checkboxes (OR). None selected = all cities. Long labels truncate with an ellipsis so the sidebar stays 18rem.
+- Browse City and Category filters: pick multiple values from a dropdown of checkboxes (OR). None selected = all. Long labels truncate with an ellipsis so the sidebar stays 18rem.
 - Camp detail freshness note under the action bar: details come from the community spreadsheet and may change; confirm on the camp’s website (or with the camp if no site); **Tell us** opens the feedback form.
 - Privacy page (`privacy.html`) linked from the footer on every page. Describes account data, favorites, summer plan, calendar emails, feedback, and Google Analytics, and how to ask for deletion.
 - Summer Plan multi-year: **2026** and **2027** via sidebar brand year select (default **2027**, persisted in `sessionStorage`). List, calendar, child filters, and cost totals scope to the selected year; soft empty state when that year has no camps. Add to Plan defaults start date to June 1 of the active/default year.
