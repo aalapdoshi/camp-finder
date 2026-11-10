@@ -3,6 +3,9 @@
 
 const MAX_CHILD_NAMES = 6;
 const MAX_PLAN_NOTE_LENGTH = 500;
+const MAX_CUSTOM_CAMP_NAME_LENGTH = 200;
+const MAX_CUSTOM_LOCATION_LENGTH = 200;
+const PERSONAL_PLAN_TYPES = ['custom', 'vacation', 'no_camp'];
 const SUMMER_PLAN_LAST_CHILD_KEY = 'summerPlanLastChildName';
 /** Allowed Summer Plan years (sidebar switcher). */
 const PLAN_YEARS = [2026, 2027];
@@ -20,6 +23,70 @@ const CHILD_COLORS = [
 
 function normalizeChildName(name) {
     return (name || '').trim();
+}
+
+/**
+ * Catalog rows omit entry_type until the personal-plan migration is read back.
+ * @param {{ entry_type?: string }|null|undefined} entry
+ * @returns {'catalog'|'custom'|'vacation'|'no_camp'}
+ */
+function getPlanEntryType(entry) {
+    const type = entry?.entry_type;
+    if (type === 'custom' || type === 'vacation' || type === 'no_camp') return type;
+    return 'catalog';
+}
+
+function isPersonalPlanEntry(entry) {
+    return PERSONAL_PLAN_TYPES.includes(getPlanEntryType(entry));
+}
+
+/** Vacation and No Camp show for every child filter. */
+function isFamilyWidePlanEntry(entry) {
+    const type = getPlanEntryType(entry);
+    return type === 'vacation' || type === 'no_camp';
+}
+
+/**
+ * @param {object|null|undefined} entry
+ * @param {Map<string, object>|null|undefined} campById
+ * @returns {string}
+ */
+function planEntryDisplayName(entry, campById) {
+    const type = getPlanEntryType(entry);
+    if (type === 'vacation') return 'Vacation';
+    if (type === 'no_camp') return 'No Camp';
+    if (type === 'custom') return normalizeChildName(entry?.custom_name) || 'Custom camp';
+    const camp = campById?.get?.(entry?.camp_id);
+    return camp?.fields?.['Camp Name'] ?? 'Unknown camp';
+}
+
+function planEntryLocation(entry) {
+    return normalizeChildName(entry?.custom_location);
+}
+
+/**
+ * @param {string|null|undefined} value
+ * @returns {{ ok: boolean, error?: string, value?: string }}
+ */
+function parseCustomCampName(value) {
+    const str = normalizeChildName(value);
+    if (!str) return { ok: false, error: 'Please enter a camp name.' };
+    if (str.length > MAX_CUSTOM_CAMP_NAME_LENGTH) {
+        return { ok: false, error: `Name must be ${MAX_CUSTOM_CAMP_NAME_LENGTH} characters or fewer.` };
+    }
+    return { ok: true, value: str };
+}
+
+/**
+ * @param {string|null|undefined} value
+ * @returns {{ ok: boolean, error?: string, value?: string|null }}
+ */
+function parseCustomLocation(value) {
+    const str = normalizeChildName(value);
+    if (str.length > MAX_CUSTOM_LOCATION_LENGTH) {
+        return { ok: false, error: `Location must be ${MAX_CUSTOM_LOCATION_LENGTH} characters or fewer.` };
+    }
+    return { ok: true, value: str || null };
 }
 
 function escapeHtml(str) {
@@ -178,7 +245,7 @@ async function getPlanEntries(options = {}) {
     try {
         let query = client
             .from('summer_plan')
-            .select('id, camp_id, start_date, end_date, status, notes, child_name, estimated_cost, created_at')
+            .select('id, camp_id, entry_type, custom_name, custom_location, start_date, end_date, status, notes, child_name, estimated_cost, created_at')
             .eq('user_id', session.user.id);
 
         if (filter === 'unassigned') {
@@ -274,6 +341,98 @@ async function addPlanEntry(campId, startDate, endDate, status, childName, estim
 }
 
 /**
+ * Insert one personal plan row (custom camp, Vacation, or No Camp).
+ * Custom requires a child and a status. Vacation and No Camp are family-wide and booked.
+ * @param {{
+ *   entryType: 'custom'|'vacation'|'no_camp',
+ *   customName?: string,
+ *   customLocation?: string,
+ *   startDate: string,
+ *   endDate?: string|null,
+ *   status?: string,
+ *   childName?: string,
+ *   estimatedCost?: number|string
+ * }} input
+ * @returns {Promise<boolean>}
+ */
+async function addPersonalPlanEntry(input) {
+    const session = await getSession();
+    if (!session?.user?.id) return false;
+
+    const client = initSupabase();
+    if (!client) return false;
+
+    const entryType = input?.entryType === 'vacation' || input?.entryType === 'no_camp'
+        ? input.entryType
+        : 'custom';
+
+    const locationParsed = parseCustomLocation(input?.customLocation);
+    if (!locationParsed.ok) {
+        console.error('Invalid location:', locationParsed.error);
+        return false;
+    }
+
+    const costParsed = parseEstimatedCostInput(input?.estimatedCost);
+    if (!costParsed.ok) {
+        console.error('Invalid estimated cost:', costParsed.error);
+        return false;
+    }
+
+    let customName = null;
+    let childName = null;
+    let status = 'booked';
+
+    if (entryType === 'custom') {
+        const nameParsed = parseCustomCampName(input?.customName);
+        if (!nameParsed.ok) {
+            console.error('Invalid custom camp name:', nameParsed.error);
+            return false;
+        }
+        customName = nameParsed.value;
+        const existing = await getDistinctChildNames();
+        const validated = validateChildNameForAdd(input?.childName || '', existing);
+        if (!validated.ok || !validated.name) {
+            console.error('Invalid or missing child name:', validated.error);
+            return false;
+        }
+        childName = validated.name;
+        status = input?.status === 'booked' ? 'booked' : 'want_to_book';
+    }
+
+    try {
+        const row = {
+            user_id: session.user.id,
+            camp_id: null,
+            entry_type: entryType,
+            custom_name: customName,
+            custom_location: locationParsed.value,
+            start_date: input.startDate,
+            end_date: input.endDate || null,
+            status,
+            child_name: childName,
+            estimated_cost: costParsed.value,
+            notes: null
+        };
+
+        const { error } = await client.from('summer_plan').insert(row);
+        if (error) {
+            console.error('Error adding personal plan entry:', error);
+            return false;
+        }
+
+        if (childName) {
+            try {
+                sessionStorage.setItem(SUMMER_PLAN_LAST_CHILD_KEY, childName);
+            } catch (_) { /* ignore */ }
+        }
+        return true;
+    } catch (err) {
+        console.error('Error in addPersonalPlanEntry:', err);
+        return false;
+    }
+}
+
+/**
  * @param {string} id
  * @param {object} updates - { start_date?, end_date?, status?, child_name?, estimated_cost?, notes? }
  */
@@ -301,6 +460,11 @@ async function updatePlanEntry(id, updates) {
         const notesParsed = parseNotesInput(updates.notes);
         if (!notesParsed.ok) return false;
         payload.notes = notesParsed.value;
+    }
+    if (updates.custom_location !== undefined) {
+        const locationParsed = parseCustomLocation(updates.custom_location);
+        if (!locationParsed.ok) return false;
+        payload.custom_location = locationParsed.value;
     }
 
     try {
@@ -624,9 +788,10 @@ function wireAddToPlanStatusSegment(modal) {
 
 function setAddToPlanStatus(status) {
     const value = status === 'booked' ? 'booked' : 'want_to_book';
-    const hidden = document.getElementById('add-to-plan-status');
+    const modal = document.getElementById('add-to-plan-modal');
+    const hidden = modal?.querySelector('#add-to-plan-status');
     if (hidden) hidden.value = value;
-    document.querySelectorAll('.add-to-plan-status-btn').forEach((btn) => {
+    modal?.querySelectorAll('.add-to-plan-status-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.status === value);
     });
 }
@@ -955,4 +1120,340 @@ function closePlanNoteModal() {
     if (backdrop) backdrop.classList.remove('active');
     if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
+}
+
+const PERSONAL_PLAN_TITLES = {
+    custom: 'Add a Custom Camp',
+    vacation: 'Add Vacation',
+    no_camp: 'Add No Camp'
+};
+
+/**
+ * Open the Summer Plan form for a custom camp, Vacation, or No Camp.
+ * Dates should already be the week that launched the form.
+ * @param {{ mode: 'custom'|'vacation'|'no_camp', startDate: string, endDate?: string }} options
+ */
+async function openPersonalPlanModal(options) {
+    const mode = options?.mode === 'vacation' || options?.mode === 'no_camp' ? options.mode : 'custom';
+    const session = await getSession();
+    if (!session?.user?.id) {
+        window.location.href = 'login.html?redirectTo=summer-plan.html';
+        return;
+    }
+
+    let backdrop = document.getElementById('personal-plan-backdrop');
+    let modal = document.getElementById('personal-plan-modal');
+
+    if (!modal || !modal.querySelector('.add-to-plan-dialog')) {
+        if (backdrop) backdrop.remove();
+        if (modal) modal.remove();
+        backdrop = null;
+        modal = null;
+    }
+
+    if (!backdrop || !modal) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'personal-plan-backdrop';
+        backdrop.className = 'add-to-plan-backdrop';
+        modal = document.createElement('div');
+        modal.id = 'personal-plan-modal';
+        modal.className = 'add-to-plan-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-labelledby', 'personal-plan-title');
+        modal.setAttribute('aria-modal', 'true');
+        modal.innerHTML = `
+            <div class="add-to-plan-dialog">
+                <header class="add-to-plan-header">
+                    <div>
+                        <h2 id="personal-plan-title" class="add-to-plan-title">Add a Custom Camp</h2>
+                        <p class="add-to-plan-camp-name" id="personal-plan-subtitle">Dates start as this week. You can change them.</p>
+                    </div>
+                    <button type="button" class="add-to-plan-close" aria-label="Close">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                </header>
+                <form id="personal-plan-form" class="add-to-plan-form">
+                    <div class="add-to-plan-body">
+                        <div class="add-to-plan-field" id="personal-plan-name-field">
+                            <label for="personal-plan-name">Camp name</label>
+                            <input type="text" id="personal-plan-name" maxlength="${MAX_CUSTOM_CAMP_NAME_LENGTH}" placeholder="e.g. Neighborhood soccer">
+                        </div>
+                        <div id="personal-plan-child-field" class="add-to-plan-field"></div>
+                        <div class="add-to-plan-date-row">
+                            <div class="add-to-plan-field">
+                                <label for="personal-plan-start">Start Date</label>
+                                <input type="date" id="personal-plan-start" required>
+                            </div>
+                            <div class="add-to-plan-field">
+                                <label for="personal-plan-end">End Date</label>
+                                <input type="date" id="personal-plan-end">
+                            </div>
+                        </div>
+                        <div class="add-to-plan-field" id="personal-plan-location-field">
+                            <label for="personal-plan-location">Location (optional)</label>
+                            <input type="text" id="personal-plan-location" maxlength="${MAX_CUSTOM_LOCATION_LENGTH}" placeholder="e.g. Ann Arbor">
+                        </div>
+                        <div class="add-to-plan-field" id="personal-plan-cost-field">
+                            <label for="personal-plan-cost">Total Estimated Cost ($)</label>
+                            <div class="add-to-plan-cost-wrap">
+                                <span class="add-to-plan-cost-prefix" aria-hidden="true">$</span>
+                                <input type="number" id="personal-plan-cost" min="0" step="1" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="add-to-plan-field" id="personal-plan-status-field">
+                            <span class="add-to-plan-field-label">Status</span>
+                            <input type="hidden" id="personal-plan-status" value="want_to_book">
+                            <div class="add-to-plan-status-segment" role="group" aria-label="Booking status">
+                                <button type="button" class="add-to-plan-status-btn active" data-status="want_to_book">Want to book</button>
+                                <button type="button" class="add-to-plan-status-btn" data-status="booked">Booked</button>
+                            </div>
+                        </div>
+                        <div id="personal-plan-error" class="add-to-plan-error" style="display:none;"></div>
+                    </div>
+                    <footer class="add-to-plan-footer">
+                        <button type="submit" class="add-to-plan-submit">Add to Plan</button>
+                        <button type="button" class="add-to-plan-cancel">Cancel</button>
+                    </footer>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(backdrop);
+        document.body.appendChild(modal);
+
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closePersonalPlanModal();
+        });
+        modal.querySelector('.add-to-plan-close').addEventListener('click', closePersonalPlanModal);
+        modal.querySelector('.add-to-plan-cancel').addEventListener('click', closePersonalPlanModal);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) closePersonalPlanModal();
+        });
+        modal.querySelector('#personal-plan-form').addEventListener('submit', handlePersonalPlanSubmit);
+        modal.querySelectorAll('.add-to-plan-status-btn').forEach((btn) => {
+            btn.addEventListener('click', () => setPersonalPlanStatus(btn.dataset.status));
+        });
+    }
+
+    modal.dataset.mode = mode;
+    const isCustom = mode === 'custom';
+    const title = document.getElementById('personal-plan-title');
+    if (title) title.textContent = PERSONAL_PLAN_TITLES[mode] || PERSONAL_PLAN_TITLES.custom;
+
+    const nameField = document.getElementById('personal-plan-name-field');
+    const nameInput = document.getElementById('personal-plan-name');
+    const childField = document.getElementById('personal-plan-child-field');
+    const locationField = document.getElementById('personal-plan-location-field');
+    const costField = document.getElementById('personal-plan-cost-field');
+    const statusField = document.getElementById('personal-plan-status-field');
+    if (nameField) nameField.hidden = !isCustom;
+    if (locationField) locationField.hidden = !isCustom;
+    if (costField) costField.hidden = !isCustom;
+    if (nameInput) {
+        nameInput.value = '';
+        nameInput.required = isCustom;
+    }
+    if (childField) childField.hidden = !isCustom;
+    if (statusField) statusField.hidden = !isCustom;
+    const childNew = document.getElementById('personal-plan-child-new');
+    if (!isCustom && childNew) childNew.required = false;
+
+    const startInput = document.getElementById('personal-plan-start');
+    const endInput = document.getElementById('personal-plan-end');
+    const locationInput = document.getElementById('personal-plan-location');
+    const costInput = document.getElementById('personal-plan-cost');
+    if (startInput) startInput.value = options?.startDate || '';
+    if (endInput) endInput.value = options?.endDate || '';
+    if (locationInput) locationInput.value = '';
+    if (costInput) costInput.value = '';
+    setPersonalPlanStatus('want_to_book');
+
+    const errEl = document.getElementById('personal-plan-error');
+    if (errEl) {
+        errEl.textContent = '';
+        errEl.style.display = 'none';
+    }
+
+    if (isCustom) await renderPersonalPlanChildField(modal);
+
+    document.body.style.overflow = 'hidden';
+    backdrop.classList.add('active');
+    modal.classList.add('active');
+    (isCustom ? nameInput : startInput)?.focus();
+}
+
+function setPersonalPlanStatus(status) {
+    const value = status === 'booked' ? 'booked' : 'want_to_book';
+    const modal = document.getElementById('personal-plan-modal');
+    const hidden = modal?.querySelector('#personal-plan-status');
+    if (hidden) hidden.value = value;
+    modal?.querySelectorAll('.add-to-plan-status-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.status === value);
+    });
+}
+
+function showPersonalPlanError(message) {
+    const errEl = document.getElementById('personal-plan-error');
+    if (errEl) {
+        errEl.textContent = message;
+        errEl.style.display = 'block';
+    }
+}
+
+function closePersonalPlanModal() {
+    const backdrop = document.getElementById('personal-plan-backdrop');
+    const modal = document.getElementById('personal-plan-modal');
+    if (backdrop) backdrop.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function renderPersonalPlanChildField(modal) {
+    const container = document.getElementById('personal-plan-child-field');
+    if (!container) return;
+
+    const names = await getDistinctChildNames();
+    let preferred = '';
+    try {
+        preferred = sessionStorage.getItem(SUMMER_PLAN_LAST_CHILD_KEY) || '';
+    } catch (_) { /* ignore */ }
+    const preferredInList = names.some((n) => n.toLowerCase() === preferred.toLowerCase());
+
+    let defaultSelection = '__new__';
+    if (names.length === 1 && !preferred) {
+        defaultSelection = names[0];
+    } else if (preferredInList) {
+        defaultSelection = names.find((n) => n.toLowerCase() === preferred.toLowerCase());
+    } else if (names.length > 0 && !preferred) {
+        defaultSelection = names[0];
+    }
+
+    const chipsHtml = names.map((n) => {
+        const safeAttr = n.replace(/"/g, '&quot;');
+        return `<button type="button" class="add-to-plan-child-chip" data-child-value="${safeAttr}" aria-pressed="false">${escapeHtml(n)}</button>`;
+    }).join('');
+
+    container.innerHTML = `
+        <span class="add-to-plan-field-label">Select Child</span>
+        <div class="add-to-plan-child-chips" role="group" aria-label="Select child">
+            ${chipsHtml}
+            <button type="button" class="add-to-plan-child-chip add-to-plan-child-chip-new" data-child-value="__new__" aria-pressed="false">
+                <span class="material-symbols-outlined" aria-hidden="true">add</span> Add New
+            </button>
+        </div>
+        <input type="text" id="personal-plan-child-new" maxlength="80" placeholder="e.g. Emma" class="add-to-plan-child-new" style="display:none;">
+        <p class="add-to-plan-field-hint">Up to ${MAX_CHILD_NAMES} different names on your plan.</p>
+    `;
+
+    const newInput = document.getElementById('personal-plan-child-new');
+    if (newInput && defaultSelection === '__new__' && preferred && !preferredInList) {
+        newInput.value = preferred;
+    }
+
+    container.querySelectorAll('.add-to-plan-child-chip').forEach((chip) => {
+        chip.addEventListener('click', () => setPersonalPlanChildSelection(chip.dataset.childValue));
+    });
+    setPersonalPlanChildSelection(defaultSelection);
+    if (modal) modal.dataset.preferredChildName = preferred;
+}
+
+function setPersonalPlanChildSelection(value) {
+    const field = document.getElementById('personal-plan-child-field');
+    if (field) field.dataset.selectedChild = value;
+    field?.querySelectorAll('.add-to-plan-child-chip').forEach((chip) => {
+        const isActive = chip.dataset.childValue === value;
+        chip.classList.toggle('active', isActive);
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    const newInput = document.getElementById('personal-plan-child-new');
+    const showNew = value === '__new__';
+    if (newInput) {
+        newInput.style.display = showNew ? 'block' : 'none';
+        newInput.required = showNew;
+        if (showNew) newInput.focus();
+    }
+}
+
+async function resolvePersonalPlanChildName() {
+    const field = document.getElementById('personal-plan-child-field');
+    const selection = field?.dataset.selectedChild || '';
+    const newInput = document.getElementById('personal-plan-child-new');
+
+    if (!selection || selection === '__new__') {
+        if (!normalizeChildName(newInput?.value)) {
+            return { ok: false, error: 'Please enter a name for the child.' };
+        }
+        const existing = await getDistinctChildNames();
+        const validated = validateChildNameForAdd(newInput?.value, existing);
+        if (!validated.ok || !validated.name) {
+            return { ok: false, error: validated.error || 'Please enter a valid child name.' };
+        }
+        return { ok: true, childName: validated.name };
+    }
+
+    return { ok: true, childName: selection };
+}
+
+async function handlePersonalPlanSubmit(e) {
+    e.preventDefault();
+    const modal = document.getElementById('personal-plan-modal');
+    const mode = modal?.dataset.mode === 'vacation' || modal?.dataset.mode === 'no_camp'
+        ? modal.dataset.mode
+        : 'custom';
+    const startDate = document.getElementById('personal-plan-start')?.value;
+    const endDate = document.getElementById('personal-plan-end')?.value || null;
+
+    if (!startDate) {
+        showPersonalPlanError('Please choose a start date.');
+        return;
+    }
+    if (endDate && endDate < startDate) {
+        showPersonalPlanError('End date must be on or after start date.');
+        return;
+    }
+
+    const payload = {
+        entryType: mode,
+        customLocation: null,
+        startDate,
+        endDate,
+        estimatedCost: 0
+    };
+
+    if (mode === 'custom') {
+        const locationParsed = parseCustomLocation(document.getElementById('personal-plan-location')?.value);
+        if (!locationParsed.ok) {
+            showPersonalPlanError(locationParsed.error || 'Please enter a shorter location.');
+            return;
+        }
+        const costResult = parseEstimatedCostInput(document.getElementById('personal-plan-cost')?.value);
+        if (!costResult.ok) {
+            showPersonalPlanError(costResult.error || 'Please enter a valid cost.');
+            return;
+        }
+        payload.customLocation = locationParsed.value;
+        payload.estimatedCost = costResult.value;
+        const nameParsed = parseCustomCampName(document.getElementById('personal-plan-name')?.value);
+        if (!nameParsed.ok) {
+            showPersonalPlanError(nameParsed.error || 'Please enter a camp name.');
+            return;
+        }
+        const childResult = await resolvePersonalPlanChildName();
+        if (!childResult.ok || !childResult.childName) {
+            showPersonalPlanError(childResult.error || 'Please select or add a child.');
+            return;
+        }
+        payload.customName = nameParsed.value;
+        payload.childName = childResult.childName;
+        payload.status = document.getElementById('personal-plan-status')?.value || 'want_to_book';
+    }
+
+    const ok = await addPersonalPlanEntry(payload);
+    if (ok) {
+        closePersonalPlanModal();
+        if (window.location.pathname.includes('summer-plan')) {
+            window.location.reload();
+        }
+    } else {
+        showPersonalPlanError('Could not add. Please try again.');
+    }
 }

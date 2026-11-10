@@ -9,11 +9,14 @@
 - Facebook login on Log in / Sign up. Sign-in is Google only.
 
 ### Changed
+- Camp detail: **Visit Website** is an outline button, matching **Add to Favorites**. **Add to Summer Plan** stays the filled primary button.
+- Summer Plan empty weeks: first action is **Search camp** (opens Browse). **Add a Custom Camp** replaces “Add a camp.” Vacation and No Camp ask for dates only. Camp name and location use the same text field style as the other plan inputs.
 - Contact email: footer and privacy page now use **a2summercamp@umich.edu** (was hello@campfinder.com).
 - `SETUP.md`: document GitHub HTTPS push auth using a **Classic** personal access token (not account password / fine-grained).
 - `js/config.example.js`: treat `a2campfinder.com` and `netlify dev` (:8888) as API-proxy hosts (matches live `config.js`).
 
 ### Added
+- Summer Plan: add a one-off custom camp, Vacation, or No Camp from an empty week or an empty plan. Custom camps ask for a child and Want to book / Booked; Vacation and No Camp apply to every child. Location can be edited later in the list. Custom camps can email **Suggest adding this camp to the catalog** to a2summercamp@umich.edu. Migration: `supabase/migrations/20261107120000_add_personal_plan_entries.sql` (run before use).
 - Browse City and Category filters: pick multiple values from a dropdown of checkboxes (OR). None selected = all. Long labels truncate with an ellipsis so the sidebar stays 18rem.
 - Camp detail freshness note under the action bar: details come from the community spreadsheet and may change; confirm on the camp’s website (or with the camp if no site); **Tell us** opens the feedback form.
 - Privacy page (`privacy.html`) linked from the footer on every page. Describes account data, favorites, summer plan, calendar emails, feedback, and Google Analytics, and how to ask for deletion.

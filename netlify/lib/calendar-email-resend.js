@@ -102,8 +102,48 @@ async function sendCalendarInviteEmail(opts) {
     return { ok: true, data: await res.json() };
 }
 
+/**
+ * Plain Resend email with no calendar attachment.
+ * @param {{ to: string, subject: string, html: string, text?: string }} opts
+ * @returns {Promise<{ ok: true, data: object } | { ok: false, status: number, error: string }>}
+ */
+async function sendPlainEmail(opts) {
+    const config = getResendConfig();
+    if (!config) {
+        return { ok: false, status: 500, error: 'Email service is not configured.' };
+    }
+
+    const payload = {
+        from: config.from,
+        to: [opts.to],
+        subject: opts.subject,
+        html: opts.html
+    };
+    if (opts.text) payload.text = opts.text;
+
+    const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+        return {
+            ok: false,
+            status: 502,
+            error: parseResendError(res.status, await res.text())
+        };
+    }
+
+    return { ok: true, data: await res.json() };
+}
+
 module.exports = {
     getResendConfig,
     normalizeFromAddress,
-    sendCalendarInviteEmail
+    sendCalendarInviteEmail,
+    sendPlainEmail
 };

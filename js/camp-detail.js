@@ -224,7 +224,7 @@ function renderCampDetail(camp, options = {}) {
         : '';
 
     const websiteButton = website
-        ? `<a href="${website}" target="_blank" rel="noopener noreferrer" class="camp-detail-btn-primary">Visit Website</a>`
+        ? `<a href="${website}" target="_blank" rel="noopener noreferrer" class="camp-detail-btn-outline">Visit Website</a>`
         : '';
 
     const favoriteLabel = isSaved ? 'Remove from Favorites' : 'Add to Favorites';

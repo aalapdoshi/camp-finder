@@ -77,8 +77,14 @@
 
                         <div id="summer-plan-empty-state" class="summer-plan-empty" style="display:none;">
                             <h2>Select a camp and add it to the summer to get started.</h2>
-                            <p>Browse camps and add them to your plan with dates.</p>
+                            <p>Browse camps and add them to your plan with dates, or add your own.</p>
                             <a href="browse.html" class="btn-primary">Browse Camps</a>
+                            <div class="personal-plan-actions">
+                                <a class="personal-plan-action" href="browse.html">Search camp</a>
+                                <button type="button" class="personal-plan-action" data-personal-mode="custom">Add a Custom Camp</button>
+                                <button type="button" class="personal-plan-action" data-personal-mode="vacation">Vacation</button>
+                                <button type="button" class="personal-plan-action" data-personal-mode="no_camp">No Camp</button>
+                            </div>
                         </div>
 
                         <div id="summer-plan-content-wrap" style="display:none;">
@@ -86,6 +92,12 @@
                                 <h2>No camps for <span id="summer-plan-year-empty-year">2027</span></h2>
                                 <p>Add a camp to this year's plan, or switch years in the sidebar.</p>
                                 <a href="browse.html" class="btn-primary">Browse Camps</a>
+                                <div class="personal-plan-actions">
+                                    <a class="personal-plan-action" href="browse.html">Search camp</a>
+                                    <button type="button" class="personal-plan-action" data-personal-mode="custom">Add a Custom Camp</button>
+                                    <button type="button" class="personal-plan-action" data-personal-mode="vacation">Vacation</button>
+                                    <button type="button" class="personal-plan-action" data-personal-mode="no_camp">No Camp</button>
+                                </div>
                             </div>
 
                             <div id="summer-plan-views-panel">

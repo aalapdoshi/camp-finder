@@ -21,6 +21,7 @@ Use this rule when working on **Summer Plan** features that are not yet implemen
 | Registration `.ics` + email (implementation) | [REGISTRATION_ICS_PLAN.md](../../REGISTRATION_ICS_PLAN.md) | **Implemented** (Aug 2026) |
 | Multi-child labels (Option A) | [MULTI_KID_SUMMER_PLAN_EXPLORATION.md](../../MULTI_KID_SUMMER_PLAN_EXPLORATION.md) | Implemented — see [MULTI_KID_SUMMER_PLAN_PLAN.md](../../MULTI_KID_SUMMER_PLAN_PLAN.md) |
 | Copy plan from another year | — | Deferred — see [SUMMER_PLAN_YEAR_PLAN.md](../../SUMMER_PLAN_YEAR_PLAN.md) Out of scope |
+| Custom camp, Vacation, No Camp | [CUSTOM_CAMP_SUMMER_PLAN_PLAN.md](../../CUSTOM_CAMP_SUMMER_PLAN_PLAN.md) | Implemented — run `20261107120000_add_personal_plan_entries.sql` |
 
 ## Implemented plans (source of truth for built behavior)
 

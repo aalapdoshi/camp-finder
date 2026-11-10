@@ -28,10 +28,11 @@ function setStoredChildFilter(value) {
 function filterEntries(entries, filter) {
     if (filter === 'all') return entries;
     if (filter === 'unassigned') {
-        return entries.filter(e => !normalizeChildName(e.child_name));
+        return entries.filter(e => !isFamilyWidePlanEntry(e) && !normalizeChildName(e.child_name));
     }
     return entries.filter(
-        e => normalizeChildName(e.child_name).toLowerCase() === filter.toLowerCase()
+        e => isFamilyWidePlanEntry(e)
+            || normalizeChildName(e.child_name).toLowerCase() === filter.toLowerCase()
     );
 }
 
@@ -77,6 +78,7 @@ async function initSummerPlanPage() {
             loadingEl.style.display = 'none';
             if (sidebar) sidebar.style.display = 'none';
             emptyState.style.display = 'block';
+            wirePersonalPlanActions(emptyState);
             return;
         }
 
@@ -89,6 +91,7 @@ async function initSummerPlanPage() {
 
         wireYearSwitcher();
         updateYearChrome();
+        wirePersonalPlanActions(document.getElementById('summer-plan-year-empty'));
         refreshViews();
         wireViewTabs();
         applyPlanView(getStoredPlanView());
@@ -164,8 +167,10 @@ function refreshViews() {
     renderCostTotal(filtered, activeChildFilter);
     wireRemoveButtons();
     wireNoteButtons();
+    wireSuggestCampButtons();
     wireRegCalendarDropdowns();
     wirePickupDropoffCalendarDropdowns();
+    wirePersonalPlanActions(document.getElementById('summer-plan-calendar-weeks'));
 }
 
 function sumEstimatedCost(entries) {
@@ -289,7 +294,49 @@ function ensureChildNamesDatalist(names) {
     dl.innerHTML = names.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
 }
 
+const SUGGEST_CAMP_LINK_LABEL = 'Suggest adding this camp to the catalog';
+
+function personalPlanActionsHtml(startDate, endDate) {
+    const start = escapeHtml(startDate || '');
+    const end = escapeHtml(endDate || '');
+    return `
+        <div class="personal-plan-actions">
+            <a class="personal-plan-action" href="browse.html">Search camp</a>
+            <button type="button" class="personal-plan-action" data-personal-mode="custom" data-start-date="${start}" data-end-date="${end}">Add a Custom Camp</button>
+            <button type="button" class="personal-plan-action" data-personal-mode="vacation" data-start-date="${start}" data-end-date="${end}">Vacation</button>
+            <button type="button" class="personal-plan-action" data-personal-mode="no_camp" data-start-date="${start}" data-end-date="${end}">No Camp</button>
+        </div>`;
+}
+
+/** Empty screens omit dates; those opens use the first week of the active plan year. */
+function firstSummerWeekDates(year) {
+    const weeks = getSummerWeeks(year);
+    const week = weeks[0];
+    if (!week) {
+        const start = defaultSummerStartDate(year);
+        return { startDate: start, endDate: start };
+    }
+    return { startDate: week.startDate, endDate: week.endDate || week.startDate };
+}
+
+function wirePersonalPlanActions(root) {
+    (root || document).querySelectorAll('[data-personal-mode]').forEach((btn) => {
+        if (btn.dataset.personalWired === '1') return;
+        btn.dataset.personalWired = '1';
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.personalMode;
+            const dates = btn.dataset.startDate
+                ? { startDate: btn.dataset.startDate, endDate: btn.dataset.endDate || '' }
+                : firstSummerWeekDates(getStoredPlanYear());
+            openPersonalPlanModal({ mode, startDate: dates.startDate, endDate: dates.endDate });
+        });
+    });
+}
+
 function renderListNotesCell(entry) {
+    if (isPersonalPlanEntry(entry)) {
+        return '<td class="summer-plan-cell-notes"></td>';
+    }
     const note = getEntryNotes(entry);
     const preview = note ? truncatePlanNote(note, 60) : '';
     const linkLabel = note ? 'Edit note' : 'Add note';
@@ -307,19 +354,24 @@ function renderListNotesCell(entry) {
 }
 
 function renderListActionsCell(entry) {
+    const type = getPlanEntryType(entry);
     const regCalendarMount =
-        entry.status === 'want_to_book'
+        type === 'catalog' && entry.status === 'want_to_book'
             ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
             : '';
     const pdCalendarMount =
-        entry.status === 'booked'
+        (type === 'catalog' || type === 'custom') && entry.status === 'booked'
             ? `<span class="summer-plan-reg-calendar-mount" data-pickup-dropoff-calendar-mount data-entry-id="${entry.id}"></span>`
             : '';
+    const suggestBtn = type === 'custom'
+        ? `<button type="button" class="summer-plan-action-link btn-suggest-camp" data-entry-id="${entry.id}">${SUGGEST_CAMP_LINK_LABEL}</button>`
+        : '';
     return `
         <td class="summer-plan-cell-actions">
             <div class="summer-plan-actions">
                 ${regCalendarMount}
                 ${pdCalendarMount}
+                ${suggestBtn}
                 <button type="button" class="summer-plan-action-link summer-plan-action-link--danger btn-remove-plan" data-entry-id="${entry.id}">Remove</button>
             </div>
         </td>
@@ -327,9 +379,8 @@ function renderListActionsCell(entry) {
 }
 
 function openNoteModalForEntry(entry) {
-    if (!entry) return;
-    const camp = cachedCampById?.get(entry.camp_id);
-    const campName = camp?.fields?.['Camp Name'] ?? 'Unknown camp';
+    if (!entry || isPersonalPlanEntry(entry)) return;
+    const campName = planEntryDisplayName(entry, cachedCampById);
     openPlanNoteModal({
         entryId: entry.id,
         campName,
@@ -346,13 +397,13 @@ function wireRegCalendarDropdowns() {
     document.querySelectorAll('[data-reg-calendar-mount]').forEach((mount) => {
         const entryId = mount.dataset.entryId;
         const entry = allEntries.find((e) => e.id === entryId);
-        if (!entry || entry.status !== 'want_to_book') return;
+        if (!entry || getPlanEntryType(entry) !== 'catalog' || entry.status !== 'want_to_book') return;
 
         const camp = cachedCampById?.get(entry.camp_id);
         createRegCalendarDropdown(mount, {
             entry,
             campFields: camp?.fields || null,
-            campName: camp?.fields?.['Camp Name'] ?? 'Unknown camp',
+            campName: planEntryDisplayName(entry, cachedCampById),
             authEmail: summerPlanAuthEmail
         });
     });
@@ -364,13 +415,15 @@ function wirePickupDropoffCalendarDropdowns() {
     document.querySelectorAll('[data-pickup-dropoff-calendar-mount]').forEach((mount) => {
         const entryId = mount.dataset.entryId;
         const entry = allEntries.find((e) => e.id === entryId);
+        const type = getPlanEntryType(entry);
         if (!entry || entry.status !== 'booked') return;
+        if (type !== 'catalog' && type !== 'custom') return;
 
-        const camp = cachedCampById?.get(entry.camp_id);
+        const camp = type === 'catalog' ? cachedCampById?.get(entry.camp_id) : null;
         createPickupDropoffCalendarDropdown(mount, {
             entry,
             campFields: camp?.fields || null,
-            campName: camp?.fields?.['Camp Name'] ?? 'Unknown camp',
+            campName: planEntryDisplayName(entry, cachedCampById),
             authEmail: summerPlanAuthEmail
         });
     });
@@ -385,6 +438,65 @@ function wireNoteButtons() {
     });
 }
 
+function wireSuggestCampButtons() {
+    document.querySelectorAll('.btn-suggest-camp').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const entry = allEntries.find((e) => e.id === btn.dataset.entryId);
+            if (!entry || getPlanEntryType(entry) !== 'custom') return;
+            suggestCustomCamp(entry, btn);
+        });
+    });
+}
+
+async function suggestCustomCamp(entry, button) {
+    const name = planEntryDisplayName(entry, cachedCampById);
+    const confirmed = window.confirm(
+        `Send “${name}” to a2summercamp@umich.edu so we can consider adding it to the catalog?`
+    );
+    if (!confirmed) return;
+
+    button.disabled = true;
+    try {
+        await postCampSuggestion(entry);
+        button.textContent = 'Suggestion sent';
+    } catch (err) {
+        button.disabled = false;
+        alert(err.message || 'Could not send suggestion.');
+    }
+}
+
+async function postCampSuggestion(entry) {
+    const session = await getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error('Please log in again to send email.');
+
+    const isLocal =
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocal
+        ? 'http://localhost:8888/.netlify/functions/send-camp-suggestion'
+        : '/api/send-camp-suggestion';
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            campName: planEntryDisplayName(entry, cachedCampById),
+            location: planEntryLocation(entry),
+            startDate: entry.start_date,
+            endDate: entry.end_date || '',
+            cost: getEntryEstimatedCost(entry)
+        })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error || 'Could not send email.');
+    }
+}
+
 function renderList(entries, campById, childNames) {
     const tbody = document.getElementById('summer-plan-list-body');
     if (!tbody) return;
@@ -393,25 +505,37 @@ function renderList(entries, campById, childNames) {
     tbody.innerHTML = '';
 
     for (const entry of entries) {
-        const campData = campById.get(entry.camp_id);
-        const campName = campData?.fields?.['Camp Name'] ?? 'Unknown camp';
-        const isUnavailable = !campData;
+        const personal = isPersonalPlanEntry(entry);
+        const familyWide = isFamilyWidePlanEntry(entry);
+        const campData = personal ? null : campById.get(entry.camp_id);
+        const campName = planEntryDisplayName(entry, campById);
+        const isUnavailable = !personal && !campData;
 
         const tr = document.createElement('tr');
         tr.dataset.entryId = entry.id;
         tr.dataset.childName = entry.child_name || '';
+        tr.dataset.entryType = getPlanEntryType(entry);
         tr.className = isUnavailable ? 'summer-plan-row-unavailable' : '';
 
         const weekStr = formatWeekOf(entry.start_date);
         const notesCellHtml = renderListNotesCell(entry);
         const actionsCellHtml = renderListActionsCell(entry);
+        const campCellHtml = isUnavailable
+            ? '<span class="summer-plan-unavailable">No longer available</span>'
+            : personal
+                ? `<span class="summer-plan-personal-name">${escapeHtml(campName)}</span>`
+                : `<a href="camp-detail.html?id=${entry.camp_id}">${escapeHtml(campName)}</a>`;
+        const statusCellHtml = familyWide
+            ? '<td><span class="summer-plan-family-status">Booked</span></td>'
+            : `<td>
+                <select class="summer-plan-edit-status" data-entry-id="${entry.id}">
+                    <option value="booked" ${entry.status === 'booked' ? 'selected' : ''}>Booked</option>
+                    <option value="want_to_book" ${entry.status === 'want_to_book' ? 'selected' : ''}>Want to book</option>
+                </select>
+            </td>`;
 
         tr.innerHTML = `
-            <td class="summer-plan-cell-camp">
-                ${isUnavailable
-                    ? '<span class="summer-plan-unavailable">No longer available</span>'
-                    : `<a href="camp-detail.html?id=${entry.camp_id}">${escapeHtml(campName)}</a>`}
-            </td>
+            <td class="summer-plan-cell-camp">${campCellHtml}</td>
             <td class="summer-plan-cell-child"></td>
             <td>
                 <input type="date" class="summer-plan-edit-start" value="${entry.start_date}" data-entry-id="${entry.id}">
@@ -426,38 +550,50 @@ function renderList(entries, campById, childNames) {
                         value="${costInputValueFromEntry(entry)}" data-entry-id="${entry.id}">
                 </div>
             </td>
-            <td>
-                <select class="summer-plan-edit-status" data-entry-id="${entry.id}">
-                    <option value="booked" ${entry.status === 'booked' ? 'selected' : ''}>Booked</option>
-                    <option value="want_to_book" ${entry.status === 'want_to_book' ? 'selected' : ''}>Want to book</option>
-                </select>
-            </td>
+            ${statusCellHtml}
             ${notesCellHtml}
             ${actionsCellHtml}
         `;
 
+        if (personal) {
+            const locationInput = document.createElement('input');
+            locationInput.type = 'text';
+            locationInput.className = 'summer-plan-edit-location';
+            locationInput.maxLength = MAX_CUSTOM_LOCATION_LENGTH;
+            locationInput.placeholder = 'Location';
+            locationInput.value = planEntryLocation(entry);
+            locationInput.dataset.entryId = entry.id;
+            tr.querySelector('.summer-plan-cell-camp')?.appendChild(locationInput);
+        }
+
         const childCell = tr.querySelector('.summer-plan-cell-child');
         const swatch = document.createElement('span');
         swatch.className = 'summer-plan-child-swatch';
-        swatch.style.backgroundColor = getChildColor(entry.child_name);
+        swatch.style.backgroundColor = getChildColor(familyWide ? '' : entry.child_name);
         swatch.setAttribute('aria-hidden', 'true');
-        swatch.title = normalizeChildName(entry.child_name) || 'Unassigned';
-
-        const childInput = document.createElement('input');
-        childInput.type = 'text';
-        childInput.className = 'summer-plan-edit-child';
-        childInput.maxLength = 80;
-        childInput.placeholder = 'Required';
-        childInput.value = normalizeChildName(entry.child_name);
-        childInput.dataset.entryId = entry.id;
-        childInput.setAttribute('list', 'summer-plan-child-names-dl');
-        childInput.addEventListener('input', () => {
-            swatch.style.backgroundColor = getChildColor(childInput.value);
-            swatch.title = normalizeChildName(childInput.value) || 'Unassigned';
-        });
-
+        swatch.title = familyWide ? 'All children' : (normalizeChildName(entry.child_name) || 'Unassigned');
         childCell.appendChild(swatch);
-        childCell.appendChild(childInput);
+
+        if (familyWide) {
+            const label = document.createElement('span');
+            label.className = 'summer-plan-family-child';
+            label.textContent = 'All children';
+            childCell.appendChild(label);
+        } else {
+            const childInput = document.createElement('input');
+            childInput.type = 'text';
+            childInput.className = 'summer-plan-edit-child';
+            childInput.maxLength = 80;
+            childInput.placeholder = 'Required';
+            childInput.value = normalizeChildName(entry.child_name);
+            childInput.dataset.entryId = entry.id;
+            childInput.setAttribute('list', 'summer-plan-child-names-dl');
+            childInput.addEventListener('input', () => {
+                swatch.style.backgroundColor = getChildColor(childInput.value);
+                swatch.title = normalizeChildName(childInput.value) || 'Unassigned';
+            });
+            childCell.appendChild(childInput);
+        }
 
         tbody.appendChild(tr);
     }
@@ -506,6 +642,14 @@ function wireInlineEdit(childNames) {
             if (ok) await afterRowSaved();
         });
     });
+
+    document.querySelectorAll('.summer-plan-edit-location').forEach(input => {
+        input.addEventListener('change', async () => {
+            const row = document.querySelector(`tr[data-entry-id="${input.dataset.entryId}"]`);
+            const ok = await saveRowFromDom(row);
+            if (ok) await afterRowSaved();
+        });
+    });
 }
 
 async function saveRowFromDom(row, options = {}) {
@@ -519,10 +663,9 @@ async function saveRowFromDom(row, options = {}) {
 
     const updates = {
         start_date: startInput?.value,
-        end_date: endInput?.value || null,
-        status: statusSelect?.value || 'want_to_book',
-        child_name: childInput?.value ?? null
+        end_date: endInput?.value || null
     };
+    if (statusSelect) updates.status = statusSelect.value || 'want_to_book';
 
     if (costInput) {
         const costResult = parseEstimatedCostInput(costInput.value);
@@ -533,10 +676,23 @@ async function saveRowFromDom(row, options = {}) {
         updates.estimated_cost = costResult.value;
     }
 
-    if (!normalizeChildName(updates.child_name)) {
-        alert('Child name is required.');
-        if (childInput) childInput.value = row.dataset.childName || '';
-        return false;
+    const locationInput = row.querySelector('.summer-plan-edit-location');
+    if (locationInput) {
+        const locationResult = parseCustomLocation(locationInput.value);
+        if (!locationResult.ok) {
+            alert(locationResult.error || 'Please enter a shorter location.');
+            return false;
+        }
+        updates.custom_location = locationResult.value;
+    }
+
+    if (childInput) {
+        updates.child_name = childInput.value ?? null;
+        if (!normalizeChildName(updates.child_name)) {
+            alert('Child name is required.');
+            childInput.value = row.dataset.childName || '';
+            return false;
+        }
     }
 
     const ok = await updatePlanEntry(id, updates);
@@ -573,12 +729,15 @@ function wireRemoveButtons() {
 }
 
 function renderCalendarWeekCard(entry, campById) {
-    const camp = campById?.get?.(entry.camp_id);
-    const campName = camp?.fields?.['Camp Name'] ?? 'Unknown camp';
-    const isUnavailable = !camp;
-    const childName = normalizeChildName(entry.child_name);
-    const childLabel = childName ? escapeHtml(childName) : 'Unassigned';
-    const childColor = getChildColor(entry.child_name);
+    const type = getPlanEntryType(entry);
+    const personal = isPersonalPlanEntry(entry);
+    const familyWide = isFamilyWidePlanEntry(entry);
+    const camp = personal ? null : campById?.get?.(entry.camp_id);
+    const campName = planEntryDisplayName(entry, campById);
+    const isUnavailable = !personal && !camp;
+    const childName = familyWide ? '' : normalizeChildName(entry.child_name);
+    const childLabel = familyWide ? 'All children' : (childName ? escapeHtml(childName) : 'Unassigned');
+    const childColor = getChildColor(familyWide ? '' : entry.child_name);
     const statusTagClass = entry.status === 'booked'
         ? 'summer-plan-week-card-status-booked'
         : 'summer-plan-week-card-status-want';
@@ -589,14 +748,25 @@ function renderCalendarWeekCard(entry, campById) {
     const notePreview = note ? truncatePlanNote(note, 80) : '';
     const noteLinkLabel = note ? 'Edit note' : 'Add note';
     const regCalendarMount =
-        entry.status === 'want_to_book'
+        type === 'catalog' && entry.status === 'want_to_book'
             ? `<span class="summer-plan-reg-calendar-mount" data-reg-calendar-mount data-entry-id="${entry.id}"></span>`
             : '';
     const pdCalendarMount =
-        entry.status === 'booked'
+        (type === 'catalog' || type === 'custom') && entry.status === 'booked'
             ? `<span class="summer-plan-reg-calendar-mount" data-pickup-dropoff-calendar-mount data-entry-id="${entry.id}"></span>`
             : '';
-    const noteBlock = `
+    const suggestBtn = type === 'custom'
+        ? `<button type="button" class="summer-plan-action-link btn-suggest-camp" data-entry-id="${entry.id}">${SUGGEST_CAMP_LINK_LABEL}</button>`
+        : '';
+    const location = personal ? planEntryLocation(entry) : '';
+    const locationHtml = location
+        ? `<p class="summer-plan-week-card-location">${escapeHtml(location)}</p>`
+        : '';
+    const noteBlock = personal
+        ? (pdCalendarMount || suggestBtn
+            ? `<p class="summer-plan-week-card-note"><span class="summer-plan-note-actions">${suggestBtn}${pdCalendarMount}</span></p>`
+            : '')
+        : `
         <p class="summer-plan-week-card-note">
             ${note ? `<span class="summer-plan-week-card-note-preview" title="${escapeHtml(note)}">${escapeHtml(notePreview)}</span>` : ''}
             <span class="summer-plan-note-actions">
@@ -605,7 +775,7 @@ function renderCalendarWeekCard(entry, campById) {
                 ${pdCalendarMount}
             </span>
         </p>`;
-    const campLink = isUnavailable
+    const campLink = personal || isUnavailable
         ? `<span class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</span>`
         : `<a href="camp-detail.html?id=${entry.camp_id}" class="summer-plan-week-card-camp-name">${escapeHtml(campName)}</a>`;
 
@@ -618,6 +788,7 @@ function renderCalendarWeekCard(entry, campById) {
                 <button type="button" class="summer-plan-week-card-remove btn-remove-plan" data-entry-id="${entry.id}">Remove</button>
             </div>
             <h4 class="summer-plan-week-card-camp">${campLink}</h4>
+            ${locationHtml}
             <p class="summer-plan-week-card-dates">${escapeHtml(datesLabel)}</p>
             <p class="summer-plan-week-card-cost">${formatEntryEstimatedCost(entry)}</p>
             ${noteBlock}
@@ -643,7 +814,10 @@ function renderCalendar(entries, campById) {
 
         const cardsHtml = entriesInWeek.length > 0
             ? entriesInWeek.map(e => renderCalendarWeekCard(e, campById)).join('')
-            : '<p class="summer-plan-week-empty">No camps planned this week</p>';
+            : `<div class="summer-plan-week-empty">
+                <p>No camps planned this week</p>
+                ${personalPlanActionsHtml(week.startDate, week.endDate)}
+            </div>`;
 
         weekEl.innerHTML = `
             <div class="summer-plan-week-heading">

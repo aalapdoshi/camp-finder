@@ -163,7 +163,13 @@ alter table public.summer_plan
 
 Or apply `supabase/migrations/20260703220000_add_notes.sql`.
 
-**If `summer_plan` does not exist yet**, run the full table setup in the **Supabase Setup (Manual)** section above first (create table, RLS, policies), then run the `child_name`, `estimated_cost`, and `notes` migrations in order.
+### Personal rows (`entry_type`, `custom_name`, `custom_location`)
+
+Summer Plan can store a one-off custom camp, Vacation, or No Camp on the same table. `entry_type` is `catalog` (default), `custom`, `vacation`, or `no_camp`. `camp_id` stays required for catalog rows and is null for the others. Custom rows store the typed name in `custom_name`. Location for all three personal kinds is `custom_location`. Vacation and No Camp have a null `child_name` and show for every child filter.
+
+Run before testing Add a camp / Vacation / No Camp. In Supabase **SQL Editor**, apply `supabase/migrations/20261107120000_add_personal_plan_entries.sql`.
+
+**If `summer_plan` does not exist yet**, run the full table setup in the **Supabase Setup (Manual)** section above first (create table, RLS, policies), then run the `child_name`, `estimated_cost`, `notes`, and personal-entry migrations in order.
 
 ## File Summary
 

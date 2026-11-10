@@ -1464,6 +1464,10 @@ body {
     gap: 0.5rem;
 }
 
+.add-to-plan-field[hidden] {
+    display: none;
+}
+
 .add-to-plan-field label,
 .add-to-plan-field-label {
     font-size: 0.75rem;
@@ -1472,6 +1476,7 @@ body {
     color: #0b1c30;
 }
 
+.add-to-plan-field input[type="text"],
 .add-to-plan-field input[type="date"],
 .add-to-plan-field input[type="number"],
 .add-to-plan-child-new,
@@ -1487,6 +1492,7 @@ body {
     box-sizing: border-box;
 }
 
+.add-to-plan-field input[type="text"]:focus,
 .add-to-plan-field input[type="date"]:focus,
 .add-to-plan-field input[type="number"]:focus,
 .add-to-plan-child-new:focus,
@@ -1970,6 +1976,58 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.personal-plan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.personal-plan-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--card-border, #c3c6d7);
+    background: #fff;
+    color: var(--text-dark, #0b1c30);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+a.personal-plan-action {
+    text-decoration: none;
+}
+
+.personal-plan-action:hover {
+    background: #eff4ff;
+}
+
+.summer-plan-edit-location {
+    display: block;
+    width: 100%;
+    max-width: 16rem;
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.summer-plan-family-child,
+.summer-plan-family-status {
+    font-size: 0.875rem;
+}
+
+.summer-plan-week-card-location {
+    margin: 0.15rem 0 0;
+    color: var(--sp-on-surface-variant);
+    font-size: 0.8125rem;
+}
+
 .summer-plan-child-sidebar {
     flex: 0 0 17rem;
     display: flex;
@@ -2356,6 +2414,14 @@ body {
     font-weight: 500;
 }
 
+.summer-plan-week-empty p {
+    margin: 0;
+}
+
+.summer-plan-week-empty .personal-plan-actions {
+    justify-content: flex-start;
+}
+
 .summer-plan-week-card {
     position: relative;
     display: flex;
@@ -2516,6 +2582,12 @@ a.summer-plan-week-card-camp-name:hover {
 
 .summer-plan-action-link--danger:hover {
     color: #991b1b;
+}
+
+.btn-suggest-camp:disabled {
+    color: var(--text-light, #6b7280);
+    cursor: default;
+    text-decoration: none;
 }
 
 .summer-plan-note-link.reg-calendar-trigger .reg-calendar-chevron,
