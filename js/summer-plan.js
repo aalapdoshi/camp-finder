@@ -1208,6 +1208,13 @@ async function openPersonalPlanModal(options) {
                                 <button type="button" class="add-to-plan-status-btn" data-status="booked">Booked</button>
                             </div>
                         </div>
+                        <div class="add-to-plan-field" id="personal-plan-suggest-field">
+                            <label class="personal-plan-suggest-label" for="personal-plan-suggest">
+                                <input type="checkbox" id="personal-plan-suggest">
+                                Suggest adding this camp to the catalog
+                            </label>
+                            <p class="add-to-plan-field-hint">We’ll email a2summercamp@umich.edu with the camp name, dates, location, and cost.</p>
+                        </div>
                         <div id="personal-plan-error" class="add-to-plan-error" style="display:none;"></div>
                     </div>
                     <footer class="add-to-plan-footer">
@@ -1245,6 +1252,8 @@ async function openPersonalPlanModal(options) {
     const locationField = document.getElementById('personal-plan-location-field');
     const costField = document.getElementById('personal-plan-cost-field');
     const statusField = document.getElementById('personal-plan-status-field');
+    const suggestField = document.getElementById('personal-plan-suggest-field');
+    const suggestInput = document.getElementById('personal-plan-suggest');
     if (nameField) nameField.hidden = !isCustom;
     if (locationField) locationField.hidden = !isCustom;
     if (costField) costField.hidden = !isCustom;
@@ -1254,6 +1263,8 @@ async function openPersonalPlanModal(options) {
     }
     if (childField) childField.hidden = !isCustom;
     if (statusField) statusField.hidden = !isCustom;
+    if (suggestField) suggestField.hidden = !isCustom;
+    if (suggestInput) suggestInput.checked = false;
     const childNew = document.getElementById('personal-plan-child-new');
     if (!isCustom && childNew) childNew.required = false;
 
@@ -1447,13 +1458,63 @@ async function handlePersonalPlanSubmit(e) {
         payload.status = document.getElementById('personal-plan-status')?.value || 'want_to_book';
     }
 
+    const suggestCatalog = mode === 'custom' && document.getElementById('personal-plan-suggest')?.checked;
     const ok = await addPersonalPlanEntry(payload);
     if (ok) {
+        if (suggestCatalog) {
+            try {
+                await sendCampCatalogSuggestion({
+                    campName: payload.customName,
+                    location: payload.customLocation || '',
+                    startDate: payload.startDate,
+                    endDate: payload.endDate || '',
+                    cost: payload.estimatedCost
+                });
+            } catch (err) {
+                alert(err.message || 'The camp was added, but the suggestion email could not be sent.');
+            }
+        }
         closePersonalPlanModal();
         if (window.location.pathname.includes('summer-plan')) {
             window.location.reload();
         }
     } else {
         showPersonalPlanError('Could not add. Please try again.');
+    }
+}
+
+/**
+ * Email a2summercamp@umich.edu so a custom camp can be considered for the catalog.
+ * @param {{ campName: string, location?: string, startDate: string, endDate?: string, cost?: number }} details
+ */
+async function sendCampCatalogSuggestion(details) {
+    const session = await getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error('Please log in again to send email.');
+
+    const isLocal =
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocal
+        ? 'http://localhost:8888/.netlify/functions/send-camp-suggestion'
+        : '/api/send-camp-suggestion';
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            campName: details.campName,
+            location: details.location || '',
+            startDate: details.startDate,
+            endDate: details.endDate || '',
+            cost: Number(details.cost) || 0
+        })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error || 'Could not send email.');
     }
 }

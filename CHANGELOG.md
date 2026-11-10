@@ -10,6 +10,7 @@
 
 ### Changed
 - Camp detail: **Visit Website** is an outline button, matching **Add to Favorites**. **Add to Summer Plan** stays the filled primary button.
+- Custom Camp form: optional **Suggest adding this camp to the catalog** checkbox emails a2summercamp@umich.edu when the camp is added.
 - Summer Plan empty weeks: first action is **Search camp** (opens Browse). **Add a Custom Camp** replaces “Add a camp.” Vacation and No Camp ask for dates only. Camp name and location use the same text field style as the other plan inputs.
 - Contact email: footer and privacy page now use **a2summercamp@umich.edu** (was hello@campfinder.com).
 - `SETUP.md`: document GitHub HTTPS push auth using a **Classic** personal access token (not account password / fine-grained).

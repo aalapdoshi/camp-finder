@@ -466,35 +466,13 @@ async function suggestCustomCamp(entry, button) {
 }
 
 async function postCampSuggestion(entry) {
-    const session = await getSession();
-    const token = session?.access_token;
-    if (!token) throw new Error('Please log in again to send email.');
-
-    const isLocal =
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiUrl = isLocal
-        ? 'http://localhost:8888/.netlify/functions/send-camp-suggestion'
-        : '/api/send-camp-suggestion';
-
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            campName: planEntryDisplayName(entry, cachedCampById),
-            location: planEntryLocation(entry),
-            startDate: entry.start_date,
-            endDate: entry.end_date || '',
-            cost: getEntryEstimatedCost(entry)
-        })
+    await sendCampCatalogSuggestion({
+        campName: planEntryDisplayName(entry, cachedCampById),
+        location: planEntryLocation(entry),
+        startDate: entry.start_date,
+        endDate: entry.end_date || '',
+        cost: getEntryEstimatedCost(entry)
     });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        throw new Error(data.error || 'Could not send email.');
-    }
 }
 
 function renderList(entries, campById, childNames) {
